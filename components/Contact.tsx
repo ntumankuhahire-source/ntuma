@@ -5,7 +5,7 @@ import { useRef } from 'react'
 import { MessageSquare, Mail, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
-const fadeUp = {
+const fadeUp: any = {
   hidden: { opacity: 0, y: 28 },
   show: (i: number) => ({
     opacity: 1,
