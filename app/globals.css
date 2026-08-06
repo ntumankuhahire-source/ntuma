@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-yellow: #FACC15;
+    --brand-black: #0A0A0A;
+    --emerald-700: #047857;
+    --emerald-800: #065f46;
+    --emerald-950: #022c22;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply font-body text-brand-black bg-white;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-emerald-700 rounded-sm;
+  }
+}
+
+@layer components {
+  /* Logo badge */
+  .logo-badge {
+    @apply inline-flex items-center gap-0.5 bg-brand-yellow text-brand-black rounded-full px-3 py-1 font-display font-semibold text-sm tracking-tight;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-body font-medium text-sm px-6 py-3 rounded-full transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 border border-emerald-700 text-emerald-700 hover:bg-emerald-50 font-body font-medium text-sm px-6 py-3 rounded-full transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2;
+  }
+
+  /* Eyebrow label */
+  .eyebrow {
+    @apply font-mono text-xs font-medium uppercase tracking-widest text-emerald-700 mb-3;
+  }
+
+  /* Section headings */
+  .section-heading {
+    @apply font-display font-semibold text-3xl md:text-4xl lg:text-5xl text-brand-black leading-tight tracking-tight;
+  }
+
+  /* Stat numbers */
+  .stat-number {
+    @apply font-mono text-2xl md:text-3xl font-medium text-emerald-700;
+  }
+
+  /* Nav link */
+  .nav-link {
+    @apply font-body font-medium text-sm text-brand-black hover:text-emerald-700 relative transition-colors duration-200;
+  }
+
+  .nav-link::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-emerald-700 transition-all duration-200;
+  }
+
+  .nav-link:hover::after {
+    @apply w-full;
+  }
+
+  /* Card base */
+  .ntuma-card {
+    @apply bg-white border border-slate-100 rounded-card p-6 transition-all duration-200 hover:border-emerald-100;
+  }
+}
+
+@layer utilities {
+  /* Route line SVG motif colours */
+  .route-motif-stroke {
+    stroke: #047857;
+    stroke-opacity: 0.12;
+  }
+
+  .section-pad {
+    @apply py-24 md:py-32;
+  }
+
+  .section-pad-sm {
+    @apply py-14 md:py-20;
+  }
+
+  /* Scrollbar for testimonials */
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .snap-start {
+    scroll-snap-align: start;
+  }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
