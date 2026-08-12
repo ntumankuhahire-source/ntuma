@@ -32,7 +32,7 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
         const payload = data.qrPayload || `https://ntumankuhahire.rw/verify/${data.receiptNo}`
         const url = await QRCode.toDataURL(payload, {
           margin: 1,
-          width: 140,
+          width: 120,
           color: {
             dark: '#0A0A0A',
             light: '#FFFFFF',
@@ -49,172 +49,174 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
   return (
     <div
       id="printable-receipt-card"
-      className="bg-white text-slate-900 shadow-2xl rounded-xl border border-slate-200 p-8 md:p-10 max-w-[720px] mx-auto select-none transition-all font-body relative overflow-hidden"
-      style={{ minHeight: '920px' }}
+      className="bg-white text-slate-900 shadow-xl rounded-xl border border-slate-200 p-5 md:p-6 max-w-[620px] mx-auto select-none transition-all font-body relative overflow-hidden flex flex-col justify-between"
+      style={{ minHeight: '620px' }}
     >
       {/* Subtle background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-full pointer-events-none" />
+      <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-full pointer-events-none" />
 
-      {/* TOP HEADER */}
-      <div className="flex justify-between items-start pb-6 border-b border-slate-200/80">
-        <div className="flex items-center gap-3.5">
-          <div className="bg-emerald-950 p-2.5 rounded-xl shadow-md flex items-center justify-center border border-emerald-800">
-            <Image
-              src="/logo.png"
-              alt="Ntumankuhahire Logo"
-              width={140}
-              height={45}
-              className="h-10 w-auto object-contain brightness-110"
-              priority
-            />
+      <div>
+        {/* TOP HEADER */}
+        <div className="flex justify-between items-start pb-3.5 border-b border-slate-200/80">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-emerald-950 p-2 rounded-lg shadow-sm flex items-center justify-center border border-emerald-800">
+              <Image
+                src="/logo.png"
+                alt="Ntumankuhahire Logo"
+                width={120}
+                height={36}
+                className="h-7 w-auto object-contain brightness-110"
+                priority
+              />
+            </div>
+            <div>
+              <h1 className="text-base font-extrabold tracking-tight text-emerald-950 leading-none mb-0.5">
+                NTUMANKUHAHIRE
+              </h1>
+              <p className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+                Courier & Delivery Services
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-emerald-950">
-              NTUMANKUHAHIRE
-            </h1>
-            <p className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-              Courier & Delivery Services
+
+          <div className="text-right">
+            <span className="text-[10px] font-mono font-extrabold tracking-[0.15em] uppercase text-amber-500 block mb-0.5">
+              OFFICIAL RECEIPT
+            </span>
+            <h2 className="text-base font-mono font-black text-slate-900 tracking-tight leading-none">
+              {data.receiptNo}
+            </h2>
+            <p className="text-[11px] font-medium text-slate-500 mt-0.5">
+              {data.date}
             </p>
           </div>
         </div>
 
-        <div className="text-right">
-          <span className="text-[11px] font-mono font-extrabold tracking-[0.18em] uppercase text-amber-500 block mb-1">
-            OFFICIAL RECEIPT
+        {/* BILLED TO SECTION */}
+        <div className="pt-3.5 pb-3">
+          <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-amber-600 block mb-0.5">
+            BILLED TO
           </span>
-          <h2 className="text-xl font-mono font-black text-slate-900 tracking-tight">
-            {data.receiptNo}
-          </h2>
-          <p className="text-xs font-medium text-slate-500 mt-0.5">
-            {data.date}
+          <h3 className="text-lg font-black text-slate-900 tracking-tight mb-2 min-h-[24px] leading-tight">
+            {data.customerName || ''}
+          </h3>
+
+          <div className="grid grid-cols-3 gap-3 text-[11px]">
+            <div>
+              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                CONTACT
+              </span>
+              <p className="font-semibold text-slate-800 truncate min-h-[16px]">
+                {data.customerContact || ''}
+              </p>
+            </div>
+            <div>
+              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                EMAIL
+              </span>
+              <p className="font-semibold text-slate-800 truncate min-h-[16px]">
+                {data.customerEmail || ''}
+              </p>
+            </div>
+            <div>
+              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                LOCATION
+              </span>
+              <p className="font-semibold text-slate-800 truncate min-h-[16px]">
+                {data.customerLocation || ''}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN HERO AMOUNT CARD */}
+        <div className="my-2.5 bg-[#091512] text-white rounded-lg p-4 md:p-5 border border-emerald-900 shadow-md relative overflow-hidden">
+          {/* Subtle accent border on left */}
+          <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-400" />
+
+          <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400/90 mb-2 pl-1 min-h-[14px]">
+            {data.serviceTitle || ''}
           </p>
-        </div>
-      </div>
 
-      {/* BILLED TO SECTION */}
-      <div className="pt-7 pb-6">
-        <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-600 block mb-1.5">
-          BILLED TO
-        </span>
-        <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-4 min-h-[32px]">
-          {data.customerName || ''}
-        </h3>
-
-        <div className="grid grid-cols-3 gap-4 text-xs">
-          <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
-              CONTACT
+          <div className="flex items-baseline gap-2 pl-1 min-h-[36px]">
+            <span className="text-3xl md:text-4xl font-mono font-black text-amber-400 tracking-tight">
+              {data.amount ? (isNaN(Number(data.amount.replace(/,/g, ''))) ? data.amount : Number(data.amount.replace(/,/g, '')).toLocaleString('en-US')) : ''}
             </span>
-            <p className="font-semibold text-slate-800 truncate min-h-[18px]">
-              {data.customerContact || ''}
-            </p>
-          </div>
-          <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
-              EMAIL
-            </span>
-            <p className="font-semibold text-slate-800 truncate min-h-[18px]">
-              {data.customerEmail || ''}
-            </p>
-          </div>
-          <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
-              LOCATION
-            </span>
-            <p className="font-semibold text-slate-800 truncate min-h-[18px]">
-              {data.customerLocation || ''}
-            </p>
+            {data.amount && (
+              <span className="text-xs font-bold text-emerald-200/80 font-mono tracking-wider">
+                {data.currency || 'RWF'}
+              </span>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* MAIN HERO AMOUNT CARD */}
-      <div className="my-4 bg-[#091512] text-white rounded-xl p-7 border border-emerald-900 shadow-xl relative overflow-hidden">
-        {/* Subtle accent border on left */}
-        <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-400" />
+        <div className="my-3 border-t border-slate-200/80" />
 
-        <p className="text-[11px] font-mono font-bold uppercase tracking-widest text-emerald-400/90 mb-4 pl-1 min-h-[16px]">
-          {data.serviceTitle || ''}
-        </p>
-
-        <div className="flex items-baseline gap-3 pl-1 min-h-[48px]">
-          <span className="text-5xl md:text-6xl font-mono font-black text-amber-400 tracking-tight">
-            {data.amount ? (isNaN(Number(data.amount.replace(/,/g, ''))) ? data.amount : Number(data.amount.replace(/,/g, '')).toLocaleString('en-US')) : ''}
-          </span>
-          {data.amount && (
-            <span className="text-base font-bold text-emerald-200/80 font-mono tracking-wider">
-              {data.currency || 'RWF'}
+        {/* AUTHORIZED SIGNATURE & OFFICIAL SEAL */}
+        <div className="grid grid-cols-2 gap-4 items-end pt-1 pb-3">
+          {/* Signature details */}
+          <div>
+            <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              AUTHORIZED SIGNATURE
             </span>
-          )}
-        </div>
-      </div>
 
-      <div className="my-6 border-t border-slate-200/80" />
+            {/* Cursive Signature Render */}
+            <div className="h-10 flex items-center mb-0.5">
+              <span
+                className="text-2xl text-emerald-950 font-semibold tracking-wide"
+                style={{ fontFamily: "'Dancing Script', 'Great Vibes', cursive" }}
+              >
+                {data.signatoryName || 'NTUMANKUHAHIRE'}
+              </span>
+            </div>
 
-      {/* AUTHORIZED SIGNATURE & OFFICIAL SEAL */}
-      <div className="grid grid-cols-2 gap-6 items-end pt-2 pb-6">
-        {/* Signature details */}
-        <div>
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-2">
-            AUTHORIZED SIGNATURE
-          </span>
-
-          {/* Cursive Signature Render */}
-          <div className="h-14 flex items-center mb-1">
-            <span
-              className="text-3xl text-emerald-950 font-semibold tracking-wide"
-              style={{ fontFamily: "'Dancing Script', 'Great Vibes', cursive" }}
-            >
+            <p className="text-[11px] font-black text-slate-900 leading-tight">
               {data.signatoryName || 'NTUMANKUHAHIRE'}
-            </span>
+            </p>
+            <p className="text-[10px] font-semibold text-slate-500 tracking-tight uppercase">
+              {data.signatoryTitle || 'DIRECTOR'}
+            </p>
           </div>
 
-          <p className="text-xs font-black text-slate-900">
-            {data.signatoryName || 'NTUMANKUHAHIRE'}
-          </p>
-          <p className="text-[11px] font-semibold text-slate-500 tracking-tight uppercase">
-            {data.signatoryTitle || 'DIRECTOR'}
-          </p>
-        </div>
-
-        {/* Circular Seal / Official Stamp */}
-        <div className="flex justify-end items-center">
-          <div className="relative w-28 h-28 flex items-center justify-center">
-            <Image
-              src="/stamp.png"
-              alt="Official Stamp"
-              width={120}
-              height={120}
-              className="w-28 h-28 object-contain drop-shadow-sm"
-              priority
-            />
+          {/* Circular Seal / Official Stamp */}
+          <div className="flex justify-end items-center">
+            <div className="relative w-20 h-20 flex items-center justify-center">
+              <Image
+                src="/stamp.png"
+                alt="Official Stamp"
+                width={90}
+                height={90}
+                className="w-20 h-20 object-contain drop-shadow-sm"
+                priority
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* CONTACT INFO FOOTER ROW */}
-      <div className="flex items-center justify-start gap-6 text-[11px] text-slate-600 border-t border-b border-slate-100 py-3 mb-6">
-        <div className="flex items-center gap-1.5">
-          <Phone className="w-3.5 h-3.5 text-amber-500" />
-          <span className="font-semibold">{data.contactPhone || '0787800703'}</span>
-        </div>
-        <div className="flex items-center gap-1.5 truncate">
-          <Mail className="w-3.5 h-3.5 text-amber-500" />
-          <span className="font-semibold truncate">{data.contactEmail || 'info.ntumankuhahire.com'}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-amber-500" />
-          <span className="font-semibold">{data.contactLocation || 'Kigali City'}</span>
+        {/* CONTACT INFO FOOTER ROW */}
+        <div className="flex items-center justify-start gap-4 text-[10px] text-slate-600 border-t border-b border-slate-100 py-2 mb-3">
+          <div className="flex items-center gap-1">
+            <Phone className="w-3 h-3 text-amber-500" />
+            <span className="font-semibold">{data.contactPhone || '0787800703'}</span>
+          </div>
+          <div className="flex items-center gap-1 truncate">
+            <Mail className="w-3 h-3 text-amber-500" />
+            <span className="font-semibold truncate">{data.contactEmail || 'info.ntumankuhahire.com'}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <MapPin className="w-3 h-3 text-amber-500" />
+            <span className="font-semibold">{data.contactLocation || 'Kigali City'}</span>
+          </div>
         </div>
       </div>
 
       {/* FOOTER BAR WITH QR CODE VERIFIER */}
-      <div className="flex justify-between items-end mt-auto pt-2">
+      <div className="flex justify-between items-end pt-1 border-t border-slate-100/80">
         <div>
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 block mb-0.5">
+          <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400 block mb-0.5">
             POWERED BY NTUMANKUHAHIRE
           </span>
-          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700">
+          <span className="inline-flex items-center gap-1 text-[9px] font-medium text-emerald-700">
             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Authentic Digital Receipt
           </span>
         </div>
@@ -222,22 +224,22 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
         {/* QR Code Container */}
         <div className="flex flex-col items-center">
           {qrCodeUrl ? (
-            <div className="p-1 bg-white border border-slate-200 rounded-lg shadow-xs">
+            <div className="p-0.5 bg-white border border-slate-200 rounded-md shadow-xs">
               <Image
                 src={qrCodeUrl}
                 alt="Receipt Verification QR Code"
-                width={70}
-                height={70}
-                className="w-16 h-16 object-contain"
+                width={54}
+                height={54}
+                className="w-13 h-13 object-contain"
                 unoptimized
               />
             </div>
           ) : (
-            <div className="w-16 h-16 bg-slate-100 border border-slate-200 rounded-lg flex items-center justify-center text-[9px] text-slate-400">
+            <div className="w-13 h-13 bg-slate-100 border border-slate-200 rounded-md flex items-center justify-center text-[8px] text-slate-400">
               QR Code
             </div>
           )}
-          <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400 mt-1">
+          <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-slate-400 mt-0.5">
             VERIFY
           </span>
         </div>

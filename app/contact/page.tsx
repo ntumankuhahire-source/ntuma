@@ -175,9 +175,6 @@ export default function ContactPage() {
                       <a href="https://wa.me/250787800703" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-black hover:text-emerald-700 transition-colors">
                         +250 787 800 703
                       </a>
-                      <a href="https://wa.me/250788524634" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-black hover:text-emerald-700 transition-colors">
-                        +250 788 524 634
-                      </a>
                     </div>
                   </div>
                 </div>

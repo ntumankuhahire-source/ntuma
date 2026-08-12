@@ -138,7 +138,7 @@ export default function TermsPage() {
                 </div>
                 <div className="flex items-start gap-2">
                   <Phone className="w-4 h-4 text-emerald-700 mt-0.5 shrink-0" />
-                  <span>Phone / WhatsApp: <a href="https://wa.me/250787800703" target="_blank" rel="noopener noreferrer" className="text-emerald-700 hover:underline">+250 787 800 703</a> &bull; <a href="https://wa.me/250788524634" target="_blank" rel="noopener noreferrer" className="text-emerald-700 hover:underline">+250 788 524 634</a></span>
+                  <span>Phone / WhatsApp: <a href="https://wa.me/250787800703" target="_blank" rel="noopener noreferrer" className="text-emerald-700 hover:underline">+250 787 800 703</a></span>
                 </div>
               </div>
             </section>

@@ -82,10 +82,6 @@ export default function Contact() {
                 <MessageSquare className="w-4 h-4 shrink-0" />
                 +250 787 800 703
               </a>
-              <a href="https://wa.me/250788524634" target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-medium px-4 py-3 rounded-xl transition-colors text-sm">
-                <MessageSquare className="w-4 h-4 shrink-0" />
-                +250 788 524 634
-              </a>
             </div>
           </motion.div>
 

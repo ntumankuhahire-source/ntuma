@@ -92,7 +92,7 @@ export default function InvoiceTemplate({ orderId, customerDetails, items, fixed
             </h1>
             <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Premium Courier Service</p>
             <div className="text-slate-600 text-xs space-y-0.5 font-medium">
-              <p><strong className="text-emerald-900">Owner Contact:</strong> +250 787 800 703 / +250 788 524 634</p>
+              <p><strong className="text-emerald-900">Owner Contact:</strong> +250 787 800 703</p>
               <p><strong className="text-emerald-900">Email:</strong> info@ntumankuhahire.com</p>
               <p><strong className="text-emerald-900">Address:</strong> Kigali, Rwanda</p>
             </div>
@@ -162,7 +162,7 @@ export default function InvoiceTemplate({ orderId, customerDetails, items, fixed
         <p className="font-bold text-sm text-emerald-700">Thank you for choosing Ntuma!</p>
         <p className="text-xs font-medium text-slate-500 mt-1">Final amounts will be confirmed by your runner on WhatsApp.</p>
         <p className="text-[11px] text-slate-400 mt-2 font-medium">
-          Ntuma Courier Service • Phone: +250 787 800 703 / +250 788 524 634 • Email: info@ntumankuhahire.com
+          Ntuma Courier Service • Phone: +250 787 800 703 • Email: info@ntumankuhahire.com
         </p>
       </div>
     </div>

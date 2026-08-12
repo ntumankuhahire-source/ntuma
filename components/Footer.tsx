@@ -9,10 +9,6 @@ const PHONE_1_DISPLAY = '+250 787 800 703'
 const PHONE_1_RAW = '250787800703'
 const WA_LINK_1 = `https://wa.me/${PHONE_1_RAW}`
 
-const PHONE_2_DISPLAY = '+250 788 524 634'
-const PHONE_2_RAW = '250788524634'
-const WA_LINK_2 = `https://wa.me/${PHONE_2_RAW}`
-
 const navLinks = [
   { label: 'About', href: '#about' },
   { label: 'Why Us', href: '#why-us' },
@@ -120,17 +116,6 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href={WA_LINK_2}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 font-mono text-sm text-white hover:text-brand-yellow transition-colors duration-150"
-                >
-                  <MessageCircle size={15} strokeWidth={1.75} className="text-brand-yellow shrink-0" />
-                  {PHONE_2_DISPLAY}
-                </a>
-              </li>
-              <li>
-                <a
                   href="mailto:info@ntumankuhahire.com"
                   className="font-body text-sm text-white hover:text-brand-yellow transition-colors duration-150 flex items-center gap-2"
                 >
@@ -233,17 +218,6 @@ export default function Footer() {
                 >
                   <MessageCircle size={15} strokeWidth={1.75} className="text-brand-yellow shrink-0" />
                   {PHONE_1_DISPLAY}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={WA_LINK_2}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 font-mono text-sm text-white"
-                >
-                  <MessageCircle size={15} strokeWidth={1.75} className="text-brand-yellow shrink-0" />
-                  {PHONE_2_DISPLAY}
                 </a>
               </li>
               <li>

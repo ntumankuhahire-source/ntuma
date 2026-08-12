@@ -106,7 +106,7 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...slateText);
-  txt('Owner Contact: +250 787 800 703  /  +250 788 524 634', margin + 22, 27.5);
+  txt('Owner Contact: +250 787 800 703', margin + 22, 27.5);
   txt('Email: info@ntumankuhahire.com  •  Kigali, Rwanda', margin + 22, 31.5);
 
   // Invoice label (right-aligned)
@@ -307,7 +307,7 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...slateText);
   txt('Final amounts will be confirmed by your runner on WhatsApp.', pageW / 2, footerY + 4.5, { align: 'center' });
-  txt('Owner Contact: +250 787 800 703 / +250 788 524 634  |  info@ntumankuhahire.com', pageW / 2, footerY + 9, { align: 'center' });
+  txt('Owner Contact: +250 787 800 703  |  info@ntumankuhahire.com', pageW / 2, footerY + 9, { align: 'center' });
 
   // Save
   doc.save(`Ntuma_Order_${order.id}.pdf`);
