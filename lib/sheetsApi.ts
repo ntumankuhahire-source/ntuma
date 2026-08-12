@@ -19,6 +19,7 @@ export type Product = {
   subcategory?: string;
   priceType?: 'fixed' | 'variable' | 'custom';
   image?: string;
+  imageUrl?: string;
 };
 
 // ─── Order Types ──────────────────────────────────────────────────────────────
@@ -147,7 +148,7 @@ export async function addCategory(category: Pick<Category, 'name' | 'description
   }
 }
 
-export async function addProduct(product: Pick<Product, 'name' | 'category' | 'price' | 'unit' | 'description'>): Promise<ApiResponse<Product>> {
+export async function addProduct(product: Pick<Product, 'name' | 'category' | 'price' | 'unit' | 'description'> & { imageUrl?: string }): Promise<ApiResponse<Product>> {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',

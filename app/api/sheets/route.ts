@@ -1,15 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGoogleSheetsClient, rowsToObjects } from '@/lib/googleSheetsService';
 
+// ── ensureHeaders cache ──────────────────────────────────────────────────────
+// This runs multiple Google API calls to scaffold sheets/headers.
+// Cache the result so we only pay the cost ONCE per server process lifecycle
+// (not on every single GET/POST request).
+let headersEnsuredAt = 0;
+const HEADERS_TTL_MS = 60 * 60 * 1000; // re-check at most once per hour
+
 // Ensure standard sheets and headers exist
 async function ensureHeaders(sheets: any, spreadsheetId: string) {
+  const now = Date.now();
+  if (now - headersEnsuredAt < HEADERS_TTL_MS) return; // already done recently
+
   try {
     const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
     const sheetNames = (spreadsheet.data.sheets || []).map((s: any) => s.properties.title);
 
     const requiredSheets: Record<string, string[]> = {
       Categories: ['id', 'name', 'description', 'createdAt'],
-      Products: ['id', 'name', 'category', 'price', 'unit', 'description', 'createdAt'],
+      Products: ['id', 'name', 'category', 'price', 'unit', 'description', 'Image URL', 'createdAt'],
       Orders: ['id', 'createdAt', 'customerName', 'customerPhone', 'location', 'budget', 'total', 'status'],
       OrderItems: ['id', 'orderId', 'category', 'productName', 'qty', 'unit', 'price', 'subtotal', 'isCustom'],
     };
@@ -32,21 +42,29 @@ async function ensureHeaders(sheets: any, spreadsheetId: string) {
 
     // Set headers if empty
     for (const [title, headers] of Object.entries(requiredSheets)) {
-      const res = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: `${title}!A1:Z1`,
-      });
-      if (!res.data.values || res.data.values.length === 0) {
-        await sheets.spreadsheets.values.update({
+      try {
+        const res = await sheets.spreadsheets.values.get({
           spreadsheetId,
-          range: `${title}!A1`,
-          valueInputOption: 'RAW',
-          requestBody: { values: [headers] },
+          range: `${title}!A1:Z1`,
         });
+        if (!res.data.values || res.data.values.length === 0) {
+          await sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range: `${title}!A1`,
+            valueInputOption: 'RAW',
+            requestBody: { values: [headers] },
+          });
+        }
+      } catch (sheetErr) {
+        console.error(`Error checking headers for sheet "${title}":`, sheetErr);
+        // Non-fatal — continue with other sheets
       }
     }
+
+    headersEnsuredAt = Date.now(); // mark success
   } catch (err) {
     console.error('Error ensuring Google Sheets headers:', err);
+    // Do NOT update headersEnsuredAt — will retry on next request
   }
 }
 
@@ -76,6 +94,8 @@ export async function GET(req: NextRequest) {
       const products = rawProducts.map((p: any) => ({
         ...p,
         price: Number(p.price) || 0,
+        // Map the 'Image URL' column header to the 'image' field used by frontend
+        image: p['Image URL'] || p.image || '',
       }));
       return NextResponse.json({ success: true, data: products });
     }
@@ -157,11 +177,12 @@ export async function POST(req: NextRequest) {
         data.price || 0,
         data.unit || '',
         data.description || '',
+        data.imageUrl || '',
         new Date().toISOString(),
       ];
       await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: 'Products!A:G',
+        range: 'Products!A:H',
         valueInputOption: 'USER_ENTERED',
         requestBody: { values: [newRecord] },
       });
@@ -174,7 +195,8 @@ export async function POST(req: NextRequest) {
           price: Number(newRecord[3]),
           unit: newRecord[4],
           description: newRecord[5],
-          createdAt: newRecord[6],
+          image: newRecord[6],
+          createdAt: newRecord[7],
         },
       });
     }
@@ -239,10 +261,15 @@ export async function POST(req: NextRequest) {
       if (data.price !== undefined) currentRow[headers.indexOf('price')] = data.price;
       if (data.unit !== undefined) currentRow[headers.indexOf('unit')] = data.unit;
       if (data.description !== undefined) currentRow[headers.indexOf('description')] = data.description;
+      // Update Image URL column if provided
+      const imageUrlColIdx = headers.indexOf('Image URL');
+      if (data.imageUrl !== undefined && imageUrlColIdx !== -1) {
+        currentRow[imageUrlColIdx] = data.imageUrl;
+      }
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `Products!A${rowIndex + 1}:G${rowIndex + 1}`,
+        range: `Products!A${rowIndex + 1}:H${rowIndex + 1}`,
         valueInputOption: 'USER_ENTERED',
         requestBody: { values: [currentRow] },
       });
