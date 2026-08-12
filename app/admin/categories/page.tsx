@@ -1,8 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { AdminTopbar } from '@/components/admin/AdminTopbar'
 import { CATEGORIES } from '@/lib/categories'
-import { CATALOG } from '@/lib/catalog'
+import { fetchProducts, type Product } from '@/lib/sheetsApi'
 import { Tag, Leaf, Scissors, Beef, ShoppingBag, Lock } from 'lucide-react'
 
 /** Icon per category id */
@@ -22,11 +23,17 @@ const ACCENT_MAP: Record<string, { bg: string; text: string; border: string; chi
 }
 
 export default function CategoriesPage() {
-  // Count live products per category from the catalog constant
+  const [products, setProducts] = useState<Product[]>([])
+
+  useEffect(() => {
+    fetchProducts().then(setProducts).catch(() => setProducts([]))
+  }, [])
+
+  // Count live products per category from API
   const productCounts = Object.fromEntries(
     CATEGORIES.map((cat) => [
       cat.id,
-      CATALOG.filter((p) => p.category === cat.id).length,
+      products.filter((p) => p.category === cat.id).length,
     ])
   )
 

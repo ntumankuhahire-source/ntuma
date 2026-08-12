@@ -65,6 +65,11 @@ const ITEM_IMAGE_FALLBACKS: Record<string, string> = {
   'cooking oil': 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&q=80',
   'flour': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=80',
   'akabanga': 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400&q=80',
+  'colgate': 'https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=400&q=80',
+  'colagate': 'https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=400&q=80',
+  'toothpaste': 'https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=400&q=80',
+  'bread': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=80',
+  'breads': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=80',
 };
 
 function getProductImageUrl(product: Product): string {
@@ -101,24 +106,20 @@ export default function ProductList({ categoryId }: { categoryId: string }) {
         const sheetProds = await fetchProducts();
         const catSheetProds = sheetProds.filter((p) => p.category === categoryId);
 
-        if (catSheetProds.length > 0) {
-          const mapped: Product[] = catSheetProds.map((sp) => ({
-            id: sp.id,
-            name: sp.name,
-            category: sp.category as any,
-            subcategory: sp.subcategory || 'General',
-            price: Number(sp.price) || 0,
-            unit: sp.unit || 'pc',
-            priceType: sp.priceType || (Number(sp.price) > 0 ? 'fixed' : 'variable'),
-            image: sp.image || undefined,
-          }));
-          setProducts(mapped);
-        } else {
-          setProducts(CATALOG.filter((p) => p.category === categoryId));
-        }
+        const mapped: Product[] = catSheetProds.map((sp) => ({
+          id: sp.id,
+          name: sp.name,
+          category: sp.category as any,
+          subcategory: sp.subcategory || 'General',
+          price: Number(sp.price) || 0,
+          unit: sp.unit || 'pc',
+          priceType: sp.priceType || (Number(sp.price) > 0 ? 'fixed' : 'variable'),
+          image: sp.image || sp.imageUrl || undefined,
+        }));
+        setProducts(mapped);
       } catch (err) {
         console.error('Failed to load products from Google Sheets:', err);
-        setProducts(CATALOG.filter((p) => p.category === categoryId));
+        setProducts([]);
       } finally {
         setLoading(false);
       }

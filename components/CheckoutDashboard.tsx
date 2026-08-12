@@ -80,6 +80,16 @@ function getCategoryMeta(categoryId: string) {
 
 // ── Item Thumbnail Lookup ───────────────────────────────────────────────────
 function getItemThumbnail(item: CartItem) {
+  if (item.image) {
+    return (
+      <img
+        src={item.image}
+        alt={item.name}
+        className="w-full h-full object-cover rounded-xl"
+        loading="lazy"
+      />
+    );
+  }
   const catItem = CATALOG.find(
     (p) => p.id === item.productId || p.name.toLowerCase() === item.name.toLowerCase()
   );
