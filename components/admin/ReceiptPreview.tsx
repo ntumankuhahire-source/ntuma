@@ -70,7 +70,7 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
               />
             </div>
             <div>
-              <h1 className="text-base font-extrabold tracking-tight text-emerald-950 leading-none mb-0.5">
+              <h1 className="text-base font-extrabold tracking-tight text-emerald-950 leading-tight mb-0.5">
                 NTUMANKUHAHIRE
               </h1>
               <p className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
@@ -83,7 +83,7 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
             <span className="text-[10px] font-mono font-extrabold tracking-[0.15em] uppercase text-amber-500 block mb-0.5">
               OFFICIAL RECEIPT
             </span>
-            <h2 className="text-base font-mono font-black text-slate-900 tracking-tight leading-none">
+            <h2 className="text-base font-mono font-black text-slate-900 tracking-tight leading-tight">
               {data.receiptNo}
             </h2>
             <p className="text-[11px] font-medium text-slate-500 mt-0.5">
@@ -94,35 +94,35 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
 
         {/* BILLED TO SECTION */}
         <div className="pt-3.5 pb-3">
-          <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-amber-600 block mb-0.5">
+          <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-amber-600 block mb-1">
             BILLED TO
           </span>
-          <h3 className="text-lg font-black text-slate-900 tracking-tight mb-2 min-h-[24px] leading-tight">
+          <h3 className="text-lg font-black text-slate-900 tracking-tight mb-2 min-h-[26px] leading-snug">
             {data.customerName || ''}
           </h3>
 
-          <div className="grid grid-cols-3 gap-3 text-[11px]">
-            <div>
-              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+          <div className="grid grid-cols-3 gap-3 text-[11px] leading-relaxed">
+            <div className="py-0.5">
+              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5 leading-none">
                 CONTACT
               </span>
-              <p className="font-semibold text-slate-800 truncate min-h-[16px]">
+              <p className="font-semibold text-slate-800 break-words leading-snug">
                 {data.customerContact || ''}
               </p>
             </div>
-            <div>
-              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+            <div className="py-0.5">
+              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5 leading-none">
                 EMAIL
               </span>
-              <p className="font-semibold text-slate-800 truncate min-h-[16px]">
+              <p className="font-semibold text-slate-800 break-words leading-snug">
                 {data.customerEmail || ''}
               </p>
             </div>
-            <div>
-              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+            <div className="py-0.5">
+              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5 leading-none">
                 LOCATION
               </span>
-              <p className="font-semibold text-slate-800 truncate min-h-[16px]">
+              <p className="font-semibold text-slate-800 break-words leading-snug">
                 {data.customerLocation || ''}
               </p>
             </div>
@@ -134,12 +134,12 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
           {/* Subtle accent border on left */}
           <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-400" />
 
-          <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400/90 mb-2 pl-1 min-h-[14px]">
+          <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400/90 mb-2 pl-1 min-h-[14px] leading-normal">
             {data.serviceTitle || ''}
           </p>
 
           <div className="flex items-baseline gap-2 pl-1 min-h-[36px]">
-            <span className="text-3xl md:text-4xl font-mono font-black text-amber-400 tracking-tight">
+            <span className="text-3xl md:text-4xl font-mono font-black text-amber-400 tracking-tight leading-none">
               {data.amount ? (isNaN(Number(data.amount.replace(/,/g, ''))) ? data.amount : Number(data.amount.replace(/,/g, '')).toLocaleString('en-US')) : ''}
             </span>
             {data.amount && (
@@ -163,17 +163,17 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
             {/* Cursive Signature Render */}
             <div className="h-10 flex items-center mb-0.5">
               <span
-                className="text-2xl text-emerald-950 font-semibold tracking-wide"
+                className="text-2xl text-emerald-950 font-semibold tracking-wide leading-normal"
                 style={{ fontFamily: "'Dancing Script', 'Great Vibes', cursive" }}
               >
                 {data.signatoryName || 'NTUMANKUHAHIRE'}
               </span>
             </div>
 
-            <p className="text-[11px] font-black text-slate-900 leading-tight">
+            <p className="text-[11px] font-black text-slate-900 leading-snug">
               {data.signatoryName || 'NTUMANKUHAHIRE'}
             </p>
-            <p className="text-[10px] font-semibold text-slate-500 tracking-tight uppercase">
+            <p className="text-[10px] font-semibold text-slate-500 tracking-tight uppercase leading-snug">
               {data.signatoryTitle || 'DIRECTOR'}
             </p>
           </div>
@@ -193,18 +193,18 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
           </div>
         </div>
 
-        {/* CONTACT INFO FOOTER ROW */}
-        <div className="flex items-center justify-start gap-4 text-[10px] text-slate-600 border-t border-b border-slate-100 py-2 mb-3">
-          <div className="flex items-center gap-1">
-            <Phone className="w-3 h-3 text-amber-500" />
+        {/* CONTACT INFO FOOTER ROW (Full unclipped line heights) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-700 border-t border-b border-slate-100 py-2.5 mb-3 leading-normal">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Phone className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span className="font-semibold">{data.contactPhone || '0787800703'}</span>
           </div>
-          <div className="flex items-center gap-1 truncate">
-            <Mail className="w-3 h-3 text-amber-500" />
-            <span className="font-semibold truncate">{data.contactEmail || 'info.ntumankuhahire.com'}</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Mail className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span className="font-semibold text-slate-800">{data.contactEmail || 'info.ntumankuhahire.com'}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <MapPin className="w-3 h-3 text-amber-500" />
+          <div className="flex items-center gap-1.5 shrink-0">
+            <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span className="font-semibold">{data.contactLocation || 'Kigali City'}</span>
           </div>
         </div>
