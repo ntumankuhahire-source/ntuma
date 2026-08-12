@@ -74,13 +74,17 @@ export default function Contact() {
             <h3 className="font-display font-semibold text-xl text-brand-black mb-3">
               Direct Ordering
             </h3>
-            <p className="font-body text-sm text-slate-500 leading-relaxed mb-8 flex-grow">
+            <p className="font-body text-sm text-slate-500 leading-relaxed mb-6 flex-grow">
               Call us or start a WhatsApp chat for immediate order processing, prices, and delivery inquiries.
             </p>
-            <div className="space-y-3">
-              <a href="https://wa.me/250788524634" target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-medium px-6 py-3.5 rounded-xl transition-colors">
-                <MessageSquare className="w-4 h-4" />
-                Chat on WhatsApp
+            <div className="space-y-2.5">
+              <a href="https://wa.me/250787800703" target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-medium px-4 py-3 rounded-xl transition-colors text-sm">
+                <MessageSquare className="w-4 h-4 shrink-0" />
+                +250 787 800 703
+              </a>
+              <a href="https://wa.me/250788524634" target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-medium px-4 py-3 rounded-xl transition-colors text-sm">
+                <MessageSquare className="w-4 h-4 shrink-0" />
+                +250 788 524 634
               </a>
             </div>
           </motion.div>
@@ -96,11 +100,19 @@ export default function Contact() {
               <Mail className="text-brand-yellow w-6 h-6" />
             </div>
             <h3 className="font-display font-semibold text-xl text-brand-black mb-3">
-              General Support
+              Email &amp; Support
             </h3>
-            <p className="font-body text-sm text-slate-500 leading-relaxed mb-8 flex-grow">
-              Have feedback, custom business partnerships, or special requests? Fill out our contact form.
+            <p className="font-body text-sm text-slate-500 leading-relaxed mb-4 flex-grow">
+              Have feedback, custom business partnerships, or special requests? Send us an email anytime.
             </p>
+            <div className="space-y-1.5 mb-6">
+              <a href="mailto:info@ntumankuhahire.com" className="font-mono text-sm font-semibold text-emerald-700 hover:underline block">
+                info@ntumankuhahire.com
+              </a>
+              <a href="mailto:ntumankuhahire@gmail.com" className="font-mono text-sm font-semibold text-emerald-700 hover:underline block">
+                ntumankuhahire@gmail.com
+              </a>
+            </div>
             <Link href="/contact" className="w-full inline-flex items-center justify-center gap-2 border border-emerald-700 text-emerald-700 hover:bg-emerald-50 font-medium px-6 py-3.5 rounded-xl transition-colors mt-auto">
               Go to Contact Page
             </Link>
@@ -120,7 +132,7 @@ export default function Contact() {
               Our Locations
             </h3>
             <p className="font-body text-sm text-slate-500 leading-relaxed mb-8 flex-grow">
-              We operate points of sale across Rwanda, including Tyazo Centre, Rwesero Market, Kamembe, and Kabeza.
+              We operate exclusively across Kigali, serving Gasabo, Kicukiro, and Nyarugenge districts.
             </p>
             <button className="w-full inline-flex items-center justify-center gap-2 bg-brand-yellow hover:bg-[#eab308] text-brand-black font-medium px-6 py-3.5 rounded-xl transition-colors mt-auto">
               <MapPin className="w-4 h-4" />

@@ -10,7 +10,7 @@ interface InvoiceItem {
   quantity: number;
   unit: string;
   price: number;
-  priceType: 'fixed' | 'variable' | 'other';
+  priceType: 'fixed' | 'variable' | 'other' | 'custom';
 }
 
 interface InvoiceProps {

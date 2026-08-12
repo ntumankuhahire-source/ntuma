@@ -15,9 +15,9 @@ const fadeUp: any = {
 
 /** Placeholder stats — client to confirm values before launch */
 const stats = [
-  { value: '80+', label: 'Vendors in network' },
-  { value: '~45min', label: 'Avg. delivery time' },
-  { value: '2', label: 'Cities served' },
+  { value: '50+', label: 'Vendors in network' },
+  { value: '~2hrs', label: 'Avg. delivery time' },
+  { value: '3', label: 'Districts in Kigali' },
 ]
 
 export default function AboutUs() {
@@ -78,9 +78,6 @@ export default function AboutUs() {
                 </span>
                 <span className="font-body text-xs text-slate-500 leading-snug">
                   {stat.label}
-                  <span className="block text-[10px] text-slate-400 italic mt-0.5">
-                    (placeholder &mdash; confirm before launch)
-                  </span>
                 </span>
               </div>
             ))}

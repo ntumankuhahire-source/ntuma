@@ -26,7 +26,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ['Sora', 'sans-serif'],
+        display: ['Sora', 'Manrope', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
         mono: ['"IBM Plex Mono"', 'monospace'],
       },

@@ -1,14 +1,18 @@
 'use client';
 
 import { useCart } from '@/lib/CartContext';
-import { CATEGORIES } from '@/lib/catalog';
-import { X, Plus, Minus, ChevronRight, Apple, Beef, ShoppingCart, HelpCircle } from 'lucide-react';
+import { CATEGORIES } from '@/lib/categories';
+import { X, Plus, Minus, ChevronRight, Leaf, Scissors, Beef, ShoppingBag, ListChecks } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-const ICON_MAP: Record<string, any> = {
-  Apple, Beef, ShoppingCart, HelpCircle
+const ICON_MAP: Record<string, React.ElementType> = {
+  'fresh-produce':    Leaf,
+  'ready-to-cook':    Scissors,
+  'animal-products':  Beef,
+  'supermarket-items': ShoppingBag,
+  'Quick List':       ListChecks,
 };
 
 export default function CartDrawer() {
@@ -119,7 +123,7 @@ export default function CartDrawer() {
               <h3 className="font-display font-medium text-sm mb-4">Keep Shopping</h3>
               <div className="grid grid-cols-2 gap-3">
                 {CATEGORIES.map((cat) => {
-                  const Icon = ICON_MAP[cat.icon] || HelpCircle;
+                  const Icon = ICON_MAP[cat.id] ?? ShoppingBag;
                   return (
                     <button
                       key={cat.id}

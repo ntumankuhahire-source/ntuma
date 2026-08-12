@@ -1,55 +1,27 @@
 'use client';
 
-import { CATEGORIES } from '@/lib/catalog';
-import { Apple, Beef, ShoppingCart, HelpCircle, ArrowRight } from 'lucide-react';
+import { CATEGORIES } from '@/lib/categories';
+import { Leaf, Scissors, Beef, ShoppingBag, ListChecks, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
-import { useCart } from '@/lib/CartContext';
-import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
-const ICON_MAP: Record<string, any> = { Apple, Beef, ShoppingCart, HelpCircle };
+const ICON_MAP: Record<string, React.ElementType> = {
+  'fresh-produce':    Leaf,
+  'ready-to-cook':    Scissors,
+  'animal-products':  Beef,
+  'supermarket-items': ShoppingBag,
+};
 
 const CAT_IMAGES: Record<string, string> = {
-  'groceries': '/vegetable.webp',
-  'animal-products': '/chicken.png',
-  'supermarket': '/supermarket.png',
-  'other': '/other.png'
+  'fresh-produce':     '/vegetable.webp',
+  'ready-to-cook':     '/ready-to-cook.png',
+  'animal-products':   '/chicken.png',
+  'supermarket-items': '/supermarket.png',
 };
 
 export default function CategoryGrid() {
-  const [showOtherForm, setShowOtherForm] = useState(false);
-  const [otherItem, setOtherItem] = useState({ description: '', vendor: '', quantity: '1' });
-  const { addItem } = useCart();
-  const router = useRouter();
-
-  const handleAddOther = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otherItem.description) return;
-    
-    addItem({
-      name: otherItem.description,
-      category: 'other',
-      price: 0,
-      unit: 'custom',
-      quantity: parseInt(otherItem.quantity) || 1,
-      priceType: 'other',
-      vendor: otherItem.vendor,
-    });
-    
-    setShowOtherForm(false);
-    setOtherItem({ description: '', vendor: '', quantity: '1' });
-  };
-
-  const handleTileClick = (e: React.MouseEvent, catId: string) => {
-    if (catId === 'other') {
-      e.preventDefault();
-      setShowOtherForm(true);
-    }
-  };
-
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-32">
+    <section id="shop" className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-32">
       <div className="max-w-3xl mx-auto text-center mb-16">
         <h2 className="eyebrow text-emerald-700 justify-center">START AN ORDER</h2>
         <h1 className="section-heading text-4xl sm:text-5xl lg:text-6xl text-brand-black tracking-tight mt-4">
@@ -57,15 +29,12 @@ export default function CategoryGrid() {
         </h1>
       </div>
 
+      {/* ── 4-category tile grid ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
         {CATEGORIES.map((cat, i) => {
-          const Icon = ICON_MAP[cat.icon] || HelpCircle;
+          const Icon = ICON_MAP[cat.id] ?? ShoppingBag;
           return (
-            <Link 
-              key={cat.id} 
-              href={`/order/${cat.id}`}
-              onClick={(e) => handleTileClick(e, cat.id)}
-            >
+            <Link key={cat.id} href={`/order/${cat.id}`}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -75,14 +44,14 @@ export default function CategoryGrid() {
               >
                 {/* Image Section */}
                 <div className="h-[55%] w-full relative overflow-hidden bg-slate-50">
-                  <img 
-                    src={CAT_IMAGES[cat.id]} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                    alt={cat.name} 
+                  <img
+                    src={CAT_IMAGES[cat.id]}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    alt={cat.name}
                   />
                   {/* Subtle inner shadow for depth */}
-                  <div className="absolute inset-0 shadow-[inset_0_-20px_40px_rgba(0,0,0,0.1)]"></div>
-                  
+                  <div className="absolute inset-0 shadow-[inset_0_-20px_40px_rgba(0,0,0,0.1)]" />
+
                   {/* Floating Icon Badge */}
                   <div className="absolute top-4 right-4 w-12 h-12 bg-white/90 backdrop-blur-md text-emerald-700 rounded-full flex items-center justify-center shadow-sm">
                     <Icon className="w-5 h-5" />
@@ -95,12 +64,13 @@ export default function CategoryGrid() {
                     <h3 className="font-display font-bold text-2xl mb-2 text-brand-black group-hover:text-emerald-700 transition-colors">
                       {cat.name}
                     </h3>
+                    {/* relatedBy is the real grouping logic — show it, not a generic hint */}
                     <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
-                      {cat.hint}
+                      {cat.relatedBy}
                     </p>
                   </div>
-                  
-                  {/* Small CTA Below */}
+
+                  {/* Small CTA */}
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-50">
                     <span className="text-sm font-semibold uppercase tracking-wider text-brand-black group-hover:text-emerald-700 transition-colors">
                       Shop Now
@@ -114,78 +84,50 @@ export default function CategoryGrid() {
         })}
       </div>
 
-      <AnimatePresence>
-        {showOtherForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0, marginTop: 0 }}
-            animate={{ opacity: 1, height: 'auto', marginTop: 32 }}
-            exit={{ opacity: 0, height: 0, marginTop: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 md:p-8 mt-8">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="font-display font-semibold text-lg">Custom Request</h3>
-                  <p className="text-sm text-slate-500 mt-1">Tell us exactly what you need and from where.</p>
-                </div>
-                <button onClick={() => setShowOtherForm(false)} className="text-sm font-medium text-slate-500 hover:text-brand-black">
-                  Cancel
-                </button>
+      {/* ── Quick Shop List entry card ────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5, ease: 'easeOut' }}
+        className="mt-10"
+      >
+        <Link href="/order/quick-list">
+          <div className="group relative flex flex-col sm:flex-row items-center justify-between gap-6 border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-emerald-50/40 hover:bg-emerald-50/70 rounded-[1.5rem] px-8 py-7 transition-all duration-300 cursor-pointer">
+            {/* Left side */}
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-white border border-emerald-100 shadow-sm flex items-center justify-center shrink-0 group-hover:shadow-md transition-shadow">
+                <ListChecks className="w-7 h-7 text-emerald-600" />
               </div>
-
-              <form onSubmit={handleAddOther} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Item Description</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 1kg of brown sugar, specifically from the shop next to..."
-                    value={otherItem.description}
-                    onChange={(e) => setOtherItem({ ...otherItem, description: e.target.value })}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Preferred Vendor (Optional)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Ndoli Supermarket"
-                      value={otherItem.vendor}
-                      onChange={(e) => setOtherItem({ ...otherItem, vendor: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Quantity</label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      value={otherItem.quantity}
-                      onChange={(e) => setOtherItem({ ...otherItem, quantity: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-mono"
-                    />
-                  </div>
-                </div>
-                <div className="pt-4">
-                  <button type="submit" className="btn-primary w-full md:w-auto">
-                    Add to Cart
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </button>
-                </div>
-              </form>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 mb-0.5">
+                  Skip the browsing
+                </p>
+                <h3 className="font-display font-bold text-xl text-brand-black group-hover:text-emerald-800 transition-colors">
+                  Know exactly what you want?
+                </h3>
+                <p className="text-sm text-slate-500 mt-0.5">
+                  Type your list in seconds — we'll handle the rest.
+                </p>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            {/* Right CTA */}
+            <div className="shrink-0">
+              <span className="inline-flex items-center gap-2 bg-emerald-700 group-hover:bg-emerald-800 text-white font-semibold text-sm px-6 py-3 rounded-full transition-colors shadow-sm group-hover:shadow-md">
+                Quick Shop List
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </div>
+          </div>
+        </Link>
+      </motion.div>
 
       {/* WhatsApp Help Footer */}
-      <div className="mt-20 text-center">
+      <div className="mt-16 text-center">
         <p className="font-body text-sm text-slate-500 mb-4">Need help placing an order?</p>
-        <a 
-          href="https://wa.me/250788524634" 
-          target="_blank" 
+        <a
+          href="https://wa.me/250787800703"
+          target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
         >
@@ -195,6 +137,6 @@ export default function CategoryGrid() {
           Contact us on WhatsApp for help
         </a>
       </div>
-    </div>
+    </section>
   );
 }

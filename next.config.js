@@ -3,8 +3,8 @@ const nextConfig = {
   images: {
     formats: ['image/webp', 'image/avif'],
   },
-  experimental: {
-    webpackBuildWorker: false,
+  webpack: (config) => {
+    return config
   },
 }
 

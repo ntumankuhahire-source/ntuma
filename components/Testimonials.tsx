@@ -16,7 +16,7 @@ const testimonials = [
   {
     initials: 'A.M.',
     name: 'Amina M.',
-    neighborhood: 'Nyagatare',
+    neighborhood: 'Kigali, Nyamirambo',
     quote:
       "I sent a list and a budget on WhatsApp. An hour later my groceries were at the door. The invoice was detailed — I knew exactly what was bought and at what price.",
   },

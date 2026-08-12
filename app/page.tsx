@@ -1,7 +1,7 @@
 import Navbar from '@/components/Navbar'
 import Hero from '@/components/Hero'
 import AboutUs from '@/components/AboutUs'
-import Products from '@/components/Products'
+import CategoryGrid from '@/components/CategoryGrid'
 import WhyUs from '@/components/WhyUs'
 import Testimonials from '@/components/Testimonials'
 import Contact from '@/components/Contact'
@@ -14,7 +14,7 @@ export default function Home() {
       <main>
         <Hero />
         <AboutUs />
-        <Products />
+        <CategoryGrid />
         <WhyUs />
         <Testimonials />
         <Contact />

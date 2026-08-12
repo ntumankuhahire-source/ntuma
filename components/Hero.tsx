@@ -17,7 +17,7 @@ export default function Hero() {
     <section
       id="hero"
       aria-label="Ntuma hero — vendor to door delivery"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black"
+      className="relative min-h-[calc(100vh-84px)] flex items-center justify-center overflow-hidden bg-black"
     >
       {/* Background Image Container */}
       <div className="absolute inset-0 z-0">
@@ -39,7 +39,7 @@ export default function Hero() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full flex flex-col items-center justify-center px-6 sm:px-10 mt-16 text-center">
+      <div className="relative z-10 w-full flex flex-col items-center justify-center px-6 sm:px-10 py-16 sm:py-24 text-center">
         <motion.div
           initial="hidden"
           animate="show"

@@ -6,7 +6,7 @@ export default function CategoryPage({ params }: { params: { category: string } 
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-slate-50/40 py-8">
         <ProductList categoryId={params.category} />
       </main>
       <Footer />

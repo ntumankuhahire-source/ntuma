@@ -1,19 +1,29 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product, PriceType } from './catalog';
+import { PriceType } from './catalog';
 
 export interface CartItem {
-  id: string; // Unique ID for cart item, can be product ID or a generated ID for 'other' items
+  /** Unique ID for cart item — product ID for catalog items, Date.now() string for custom ones */
+  id: string;
   productId?: string;
   name: string;
+  /**
+   * One of the 4 fixed category ids, OR 'Quick List' for items added via the Quick Shop List flow.
+   * The string 'Quick List' is intentional — it is the pseudo-category constant from lib/categories.ts.
+   */
   category: string;
-  price: number; // 0 for variable/other if unknown
+  price: number;  // 0 for variable / custom items
   unit: string;
   quantity: number;
-  priceType: PriceType | 'other';
+  /** 'custom' is used exclusively for Quick List items */
+  priceType: PriceType;
   note?: string;
-  vendor?: string; // For 'other' category
+  /**
+   * true  → Quick List item (free-text, no catalog product, price TBD)
+   * false → Normal catalog item (productId should be set)
+   */
+  isCustom: boolean;
 }
 
 interface CartContextType {
@@ -58,15 +68,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (item: Omit<CartItem, 'id'> & { id?: string }) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id || (item.productId && i.productId === item.productId));
-      if (existing && item.priceType === 'fixed') {
+      // Only merge identical fixed-price catalog items (not custom / variable)
+      const existing = prev.find(
+        (i) =>
+          !i.isCustom &&
+          item.productId &&
+          i.productId === item.productId &&
+          item.priceType === 'fixed'
+      );
+      if (existing) {
         return prev.map((i) =>
           i.id === existing.id ? { ...i, quantity: i.quantity + item.quantity } : i
         );
       }
       return [...prev, { ...item, id: item.id || Date.now().toString() }];
     });
-    // Optional: bounce effect logic could trigger here, handled by component though
   };
 
   const updateQuantity = (id: string, quantity: number) => {
@@ -88,8 +104,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     .filter((i) => i.priceType === 'fixed')
     .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const hasPendingPrices = items.some((i) => i.priceType === 'variable' || i.priceType === 'other');
-  
+  const hasPendingPrices = items.some(
+    (i) => i.priceType === 'variable' || i.priceType === 'custom' || i.isCustom
+  );
+
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
