@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, Tag, Package, Menu, X, LogOut, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, Tag, Package, Menu, X, LogOut, ShieldCheck, Receipt } from 'lucide-react'
 import { useState } from 'react'
 
 const navigation = [
@@ -11,6 +11,7 @@ const navigation = [
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { name: 'Categories', href: '/admin/categories', icon: Tag },
   { name: 'Products', href: '/admin/products', icon: Package },
+  { name: 'Generate Receipt', href: '/admin/receipts', icon: Receipt },
 ]
 
 export function AdminSidebar() {

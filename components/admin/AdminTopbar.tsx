@@ -4,6 +4,7 @@ import { Plus, Download } from 'lucide-react'
 
 interface AdminTopbarProps {
   title: string;
+  subtitle?: string;
   /** Primary action (green "+ Label" button). Only rendered when both are provided. */
   actionLabel?: string;
   onAction?: () => void;
@@ -14,16 +15,22 @@ interface AdminTopbarProps {
 
 export function AdminTopbar({
   title,
+  subtitle,
   actionLabel,
   onAction,
   ghostActionLabel,
   onGhostAction,
 }: AdminTopbarProps) {
   return (
-    <div className="flex items-center justify-between h-20 border-b border-slate-200 bg-white px-8">
-      <h1 className="font-display font-bold text-2xl text-emerald-950 ml-10 lg:ml-0">
-        {title}
-      </h1>
+    <div className="flex items-center justify-between min-h-[5rem] py-3 border-b border-slate-200 bg-white px-8">
+      <div className="ml-10 lg:ml-0">
+        <h1 className="font-display font-bold text-2xl text-emerald-950">
+          {title}
+        </h1>
+        {subtitle && (
+          <p className="text-xs text-slate-500 font-medium mt-0.5">{subtitle}</p>
+        )}
+      </div>
 
       <div className="flex items-center gap-3">
         {/* Ghost secondary action (e.g. Export) */}

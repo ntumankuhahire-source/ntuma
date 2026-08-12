@@ -78,15 +78,24 @@ export default function InvoiceTemplate({ orderId, customerDetails, items, fixed
       {/* Header */}
       <div className="flex justify-between items-start pb-8 mb-8 border-b-[3px] border-emerald-700">
         <div className="flex gap-4 items-center">
-          <div className="w-16 h-16 bg-[#FACC15] flex items-center justify-center font-bold text-3xl text-emerald-900 rounded-xl">
-            N
+          <div className="w-16 h-16 bg-[#FACC15] flex items-center justify-center rounded-xl p-1 shrink-0 overflow-hidden shadow-sm">
+            <img 
+              src="/logo.png" 
+              alt="Ntuma Logo" 
+              className="w-full h-full object-contain"
+              crossOrigin="anonymous"
+            />
           </div>
           <div>
-            <h1 className="text-3xl font-black tracking-tight mb-1 text-emerald-900">
+            <h1 className="text-3xl font-black tracking-tight mb-0.5 text-emerald-900">
               NTUMA
             </h1>
-            <p className="text-slate-500 text-sm font-medium">Premium Courier Service</p>
-            <p className="text-slate-500 text-sm">Kigali, Rwanda • +250 788 524 634</p>
+            <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Premium Courier Service</p>
+            <div className="text-slate-600 text-xs space-y-0.5 font-medium">
+              <p><strong className="text-emerald-900">Owner Contact:</strong> +250 787 800 703 / +250 788 524 634</p>
+              <p><strong className="text-emerald-900">Email:</strong> info@ntumankuhahire.com</p>
+              <p><strong className="text-emerald-900">Address:</strong> Kigali, Rwanda</p>
+            </div>
           </div>
         </div>
         <div className="text-right">
@@ -151,7 +160,10 @@ export default function InvoiceTemplate({ orderId, customerDetails, items, fixed
       {/* Footer */}
       <div className="text-center pt-8 border-t border-slate-200">
         <p className="font-bold text-sm text-emerald-700">Thank you for choosing Ntuma!</p>
-        <p className="text-xs font-medium text-slate-500 mt-2">Final amounts will be confirmed by your runner on WhatsApp.</p>
+        <p className="text-xs font-medium text-slate-500 mt-1">Final amounts will be confirmed by your runner on WhatsApp.</p>
+        <p className="text-[11px] text-slate-400 mt-2 font-medium">
+          Ntuma Courier Service • Phone: +250 787 800 703 / +250 788 524 634 • Email: info@ntumankuhahire.com
+        </p>
       </div>
     </div>
   );

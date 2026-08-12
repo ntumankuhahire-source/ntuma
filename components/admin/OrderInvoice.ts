@@ -2,13 +2,39 @@ import { jsPDF } from 'jspdf';
 import type { Order } from '@/lib/sheetsApi';
 import { CATEGORIES, QUICK_LIST_CATEGORY } from '@/lib/categories';
 
+async function getLogoBase64(): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        } else {
+          resolve(null);
+        }
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = '/logo.png';
+  });
+}
+
 /**
  * Generate and download a branded PDF invoice for an admin order.
  *
  * Uses jsPDF (already in project deps) with pure programmatic drawing —
  * no html2canvas dependency, works in any environment.
  */
-export function downloadOrderInvoice(order: Order): void {
+export async function downloadOrderInvoice(order: Order): Promise<void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();   // 210
   const margin = 18;
@@ -43,25 +69,45 @@ export function downloadOrderInvoice(order: Order): void {
   // ══════════════════════════════════════════════════════════════════════════
   // HEADER
   // ══════════════════════════════════════════════════════════════════════════
-  // Yellow logo block
-  doc.setFillColor(...yellow);
-  doc.roundedRect(margin, 12, 16, 16, 2, 2, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.setTextColor(...emerald);
-  txt('N', margin + 8, 23, { align: 'center' });
+  const logoBase64 = await getLogoBase64();
+  if (logoBase64) {
+    try {
+      doc.setFillColor(...yellow);
+      doc.roundedRect(margin, 10, 18, 18, 2, 2, 'F');
+      doc.addImage(logoBase64, 'PNG', margin + 1, 11, 16, 16);
+    } catch {
+      doc.setFillColor(...yellow);
+      doc.roundedRect(margin, 10, 18, 18, 2, 2, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(...emerald);
+      txt('N', margin + 9, 22, { align: 'center' });
+    }
+  } else {
+    doc.setFillColor(...yellow);
+    doc.roundedRect(margin, 10, 18, 18, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(...emerald);
+    txt('N', margin + 9, 22, { align: 'center' });
+  }
 
   // Brand name
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...emerald);
-  txt('NTUMA', margin + 20, 21);
+  txt('NTUMA', margin + 22, 19);
 
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...slateText);
+  txt('PREMIUM COURIER SERVICE', margin + 22, 23.5);
+
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...slateText);
-  txt('Premium Courier Service', margin + 20, 26);
-  txt('Kigali, Rwanda  •  +250 788 524 634', margin + 20, 30);
+  txt('Owner Contact: +250 787 800 703  /  +250 788 524 634', margin + 22, 27.5);
+  txt('Email: info@ntumankuhahire.com  •  Kigali, Rwanda', margin + 22, 31.5);
 
   // Invoice label (right-aligned)
   doc.setFontSize(9);
@@ -260,7 +306,8 @@ export function downloadOrderInvoice(order: Order): void {
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...slateText);
-  txt('Final amounts will be confirmed by your runner on WhatsApp.', pageW / 2, footerY + 5, { align: 'center' });
+  txt('Final amounts will be confirmed by your runner on WhatsApp.', pageW / 2, footerY + 4.5, { align: 'center' });
+  txt('Owner Contact: +250 787 800 703 / +250 788 524 634  |  info@ntumankuhahire.com', pageW / 2, footerY + 9, { align: 'center' });
 
   // Save
   doc.save(`Ntuma_Order_${order.id}.pdf`);
