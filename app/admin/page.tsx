@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { AdminTopbar } from '@/components/admin/AdminTopbar'
 import { StatCard } from '@/components/admin/StatCard'
-import { fetchCategories, fetchProducts, listOrders, type Category, type Product, type Order } from '@/lib/sheetsApi'
+import { fetchCategories, fetchProducts, listOrders, type Product, type Order } from '@/lib/sheetsApi'
+import { CATEGORIES as SYSTEM_CATEGORIES } from '@/lib/categories'
 import { Plus, ArrowRight, ShoppingBag, Tag, Package, ExternalLink, Clock, CheckCircle2, TrendingUp } from 'lucide-react'
 
 export default function OverviewPage() {
-  const [categories, setCategories] = useState<Category[]>([])
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
   const [products, setProducts]     = useState<Product[]>([])
   const [orders, setOrders]         = useState<Order[]>([])
   const [loading, setLoading]         = useState(true)
@@ -21,17 +22,20 @@ export default function OverviewPage() {
           fetchProducts(),
           listOrders(),
         ])
-        setCategories(catData)
-        setProducts(prodData)
-        setOrders(orderData)
+        setCategories(catData && catData.length > 0 ? catData : SYSTEM_CATEGORIES)
+        setProducts(prodData || [])
+        setOrders(orderData || [])
       } catch (err) {
         console.error('Error loading overview data:', err)
+        setCategories(SYSTEM_CATEGORIES)
       } finally {
         setLoading(false)
       }
     }
     loadData()
   }, [])
+
+  const activeCategories = categories.length > 0 ? categories : SYSTEM_CATEGORIES
 
   const pendingOrders = orders.filter(o => o.status === 'Pending')
   const confirmedOrders = orders.filter(o => o.status === 'Confirmed')
@@ -44,9 +48,15 @@ export default function OverviewPage() {
   // Top 5 recent orders
   const recentOrders = orders.slice(0, 5)
 
-  // Map category product counts
-  const categoryCounts = categories.map(cat => {
-    const count = products.filter(p => (p.category || (p as any).categoryId) === cat.id).length
+  // Map category product counts with robust ID matching
+  const categoryCounts = activeCategories.map(cat => {
+    const count = products.filter(p => {
+      const pCat = p.category || (p as any).categoryId || ''
+      if (pCat === cat.id) return true
+      if (cat.id === 'fresh-produce' && pCat === 'groceries') return true
+      if (cat.id === 'supermarket-items' && pCat === 'supermarket') return true
+      return false
+    }).length
     return { ...cat, productCount: count }
   })
 
@@ -70,7 +80,7 @@ export default function OverviewPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <StatCard
               label="Total Categories"
-              value={loading ? '…' : categories.length}
+              value={loading ? '…' : activeCategories.length}
               href="/admin/categories"
               subtext="Manage categories →"
             />
@@ -105,8 +115,8 @@ export default function OverviewPage() {
               href="/admin/categories"
               className="flex items-center justify-center gap-2 p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-card text-xs font-medium transition-colors border border-emerald-200/60"
             >
-              <Plus className="w-4 h-4 text-emerald-700" />
-              Add Category
+              <Tag className="w-4 h-4 text-emerald-700" />
+              View Categories
             </Link>
             <Link
               href="/admin/products"
@@ -281,7 +291,7 @@ export default function OverviewPage() {
               {loading ? (
                 <div className="text-xs text-slate-400 py-4 animate-pulse">Loading categories…</div>
               ) : categoryCounts.length === 0 ? (
-                <div className="text-xs text-slate-400 py-4">No categories created yet.</div>
+                <div className="text-xs text-slate-400 py-4">No categories available.</div>
               ) : (
                 <div className="space-y-3">
                   {categoryCounts.map((cat) => {
