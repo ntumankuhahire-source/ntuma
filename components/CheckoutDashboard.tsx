@@ -782,27 +782,27 @@ export default function CheckoutDashboard() {
                 </div>
 
                 <a
-                  href={`tel:*334*9*11686878*${fixedTotal}#`}
-                  className="w-full bg-[#004A8F] hover:bg-[#003666] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base"
+                  href={`tel:*334*8*1*880008822*${fixedTotal}#`}
+                  className="w-full bg-[#004A8F] hover:bg-[#003666] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
                 >
                   <CreditCard className="w-5 h-5" />
-                  Pay with Bank of Kigali (*334*)
+                  <span>Pay with BK Pay</span>
                 </a>
 
                 <a
-                  href={`tel:*182*1*11686878*${fixedTotal}#`}
-                  className="w-full bg-[#FFCC00] hover:bg-[#E6B800] text-brand-black py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base"
+                  href={`tel:*182*8*1*000882*${fixedTotal}#`}
+                  className="w-full bg-[#FFCC00] hover:bg-[#E6B800] text-slate-900 py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
                 >
                   <CreditCard className="w-5 h-5" />
-                  Pay with MTN MoMo (*182*)
+                  <span>Pay with MTN MoMo</span>
                 </a>
 
                 <a
-                  href={`tel:*182*1*11686878*${fixedTotal}#`}
-                  className="w-full bg-[#E50000] hover:bg-[#CC0000] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base"
+                  href={`tel:*182*8*1*88000882*${fixedTotal}#`}
+                  className="w-full bg-[#E50000] hover:bg-[#CC0000] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
                 >
                   <CreditCard className="w-5 h-5" />
-                  Pay with Airtel Money (*182*)
+                  <span>Pay with Airtel Money</span>
                 </a>
 
                 <p className="text-center text-xs text-slate-500 pt-2">
@@ -858,35 +858,65 @@ export default function CheckoutDashboard() {
                 OFFICIAL PAYMENT CODES
               </div>
 
+              <div className="p-3 bg-emerald-50/70 border border-emerald-200/60 rounded-2xl text-xs space-y-1">
+                <span className="text-slate-500 font-medium">Account Holder Name:</span>
+                <p className="font-bold text-slate-900 text-sm">Ntuma nkuhahire</p>
+              </div>
+
               <div className="space-y-3 text-sm">
-                <div className="border border-amber-300/60 bg-amber-50/70 rounded-2xl p-4 space-y-1">
-                  <span className="text-xs font-bold text-amber-900 uppercase tracking-wider bg-amber-200/60 px-2 py-0.5 rounded">
-                    MTN &amp; Airtel Code
-                  </span>
-                  <div className="flex justify-between pt-2">
-                    <span className="text-slate-600">Merchant Code:</span>
-                    <span className="font-mono font-bold text-slate-900">11686878</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">USSD:</span>
-                    <span className="font-mono text-amber-900 font-bold">
-                      *182*1*11686878*Amount#
+                {/* Bank of Kigali (BK) */}
+                <div className="border border-blue-200 bg-blue-50/70 rounded-2xl p-4 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-900 uppercase tracking-wider bg-blue-200/60 px-2 py-0.5 rounded">
+                      Bank of Kigali (BK)
                     </span>
                   </div>
-                </div>
-
-                <div className="border border-blue-200 bg-blue-50/70 rounded-2xl p-4 space-y-1">
-                  <span className="text-xs font-bold text-blue-900 uppercase tracking-wider bg-blue-200/60 px-2 py-0.5 rounded">
-                    Bank of Kigali Code
-                  </span>
                   <div className="flex justify-between pt-2">
                     <span className="text-slate-600">Merchant Code:</span>
-                    <span className="font-mono font-bold text-slate-900">11686878</span>
+                    <span className="font-mono font-bold text-slate-900">880008822</span>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-slate-500">USSD:</span>
                     <span className="font-mono text-blue-900 font-bold">
-                      *334*9*11686878*Amount#
+                      *334*8*1*880008822*Amount#
+                    </span>
+                  </div>
+                </div>
+
+                {/* MTN MoMo */}
+                <div className="border border-amber-300/60 bg-amber-50/70 rounded-2xl p-4 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-900 uppercase tracking-wider bg-amber-200/60 px-2 py-0.5 rounded">
+                      MTN MoMo
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-2">
+                    <span className="text-slate-600">Merchant Code:</span>
+                    <span className="font-mono font-bold text-slate-900">000882</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">USSD:</span>
+                    <span className="font-mono text-amber-900 font-bold">
+                      *182*8*1*000882*Amount#
+                    </span>
+                  </div>
+                </div>
+
+                {/* Airtel Money */}
+                <div className="border border-rose-200 bg-rose-50/70 rounded-2xl p-4 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-rose-900 uppercase tracking-wider bg-rose-200/60 px-2 py-0.5 rounded">
+                      Airtel Money
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-2">
+                    <span className="text-slate-600">Merchant Code:</span>
+                    <span className="font-mono font-bold text-slate-900">88000882</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">USSD:</span>
+                    <span className="font-mono text-rose-900 font-bold">
+                      *182*8*1*88000882*Amount#
                     </span>
                   </div>
                 </div>

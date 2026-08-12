@@ -83,10 +83,10 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
             OFFICIAL RECEIPT
           </span>
           <h2 className="text-xl font-mono font-black text-slate-900 tracking-tight">
-            {data.receiptNo || 'NT-2026-1383'}
+            {data.receiptNo}
           </h2>
           <p className="text-xs font-medium text-slate-500 mt-0.5">
-            {data.date || 'July 13, 2026'}
+            {data.date}
           </p>
         </div>
       </div>
@@ -96,8 +96,8 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
         <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-600 block mb-1.5">
           BILLED TO
         </span>
-        <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-4">
-          {data.customerName || 'CAPR Rwanda'}
+        <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-4 min-h-[32px]">
+          {data.customerName || ''}
         </h3>
 
         <div className="grid grid-cols-3 gap-4 text-xs">
@@ -105,45 +105,47 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
               CONTACT
             </span>
-            <p className="font-semibold text-slate-800 truncate">
-              {data.customerContact || '0788241529'}
+            <p className="font-semibold text-slate-800 truncate min-h-[18px]">
+              {data.customerContact || ''}
             </p>
           </div>
           <div>
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
               EMAIL
             </span>
-            <p className="font-semibold text-slate-800 truncate">
-              {data.customerEmail || 'info@capr.org.rw'}
+            <p className="font-semibold text-slate-800 truncate min-h-[18px]">
+              {data.customerEmail || ''}
             </p>
           </div>
           <div>
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
               LOCATION
             </span>
-            <p className="font-semibold text-slate-800 truncate">
-              {data.customerLocation || 'Kigali,Rwanda'}
+            <p className="font-semibold text-slate-800 truncate min-h-[18px]">
+              {data.customerLocation || ''}
             </p>
           </div>
         </div>
       </div>
 
-      {/* MAIN HERO AMOUNT CARD (exact match to visual image dark box with yellow total) */}
+      {/* MAIN HERO AMOUNT CARD */}
       <div className="my-4 bg-[#091512] text-white rounded-xl p-7 border border-emerald-900 shadow-xl relative overflow-hidden">
         {/* Subtle accent border on left */}
         <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-400" />
 
-        <p className="text-[11px] font-mono font-bold uppercase tracking-widest text-emerald-400/90 mb-4 pl-1">
-          {data.serviceTitle || 'CAPR WEB DEVELOPMENT'}
+        <p className="text-[11px] font-mono font-bold uppercase tracking-widest text-emerald-400/90 mb-4 pl-1 min-h-[16px]">
+          {data.serviceTitle || ''}
         </p>
 
-        <div className="flex items-baseline gap-3 pl-1">
+        <div className="flex items-baseline gap-3 pl-1 min-h-[48px]">
           <span className="text-5xl md:text-6xl font-mono font-black text-amber-400 tracking-tight">
-            {data.amount ? Number(data.amount.replace(/,/g, '')).toLocaleString('en-US') : '180,000'}
+            {data.amount ? (isNaN(Number(data.amount.replace(/,/g, ''))) ? data.amount : Number(data.amount.replace(/,/g, '')).toLocaleString('en-US')) : ''}
           </span>
-          <span className="text-base font-bold text-emerald-200/80 font-mono tracking-wider">
-            {data.currency || 'RWF'}
-          </span>
+          {data.amount && (
+            <span className="text-base font-bold text-emerald-200/80 font-mono tracking-wider">
+              {data.currency || 'RWF'}
+            </span>
+          )}
         </div>
       </div>
 
@@ -163,15 +165,15 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
               className="text-3xl text-emerald-950 font-semibold tracking-wide"
               style={{ fontFamily: "'Dancing Script', 'Great Vibes', cursive" }}
             >
-              {data.signatoryName || 'Muhoza Plaisir'}
+              {data.signatoryName || 'NTUMANKUHAHIRE'}
             </span>
           </div>
 
           <p className="text-xs font-black text-slate-900">
-            {data.signatoryName || 'Muhoza Plaisir'}
+            {data.signatoryName || 'NTUMANKUHAHIRE'}
           </p>
           <p className="text-[11px] font-semibold text-slate-500 tracking-tight uppercase">
-            {data.signatoryTitle || 'NTUMANKUHAHIRE — DIRECTOR'}
+            {data.signatoryTitle || 'DIRECTOR'}
           </p>
         </div>
 
@@ -194,15 +196,15 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
       <div className="flex items-center justify-start gap-6 text-[11px] text-slate-600 border-t border-b border-slate-100 py-3 mb-6">
         <div className="flex items-center gap-1.5">
           <Phone className="w-3.5 h-3.5 text-amber-500" />
-          <span className="font-semibold">{data.contactPhone || '0782557168'}</span>
+          <span className="font-semibold">{data.contactPhone || '0787800703'}</span>
         </div>
         <div className="flex items-center gap-1.5 truncate">
           <Mail className="w-3.5 h-3.5 text-amber-500" />
-          <span className="font-semibold truncate">{data.contactEmail || 'plaisirmuhoza@gmail.com'}</span>
+          <span className="font-semibold truncate">{data.contactEmail || 'info.ntumankuhahire.com'}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5 text-amber-500" />
-          <span className="font-semibold">{data.contactLocation || 'Nyagatare City'}</span>
+          <span className="font-semibold">{data.contactLocation || 'Kigali City'}</span>
         </div>
       </div>
 
