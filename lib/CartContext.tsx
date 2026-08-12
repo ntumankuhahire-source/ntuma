@@ -19,6 +19,7 @@ export interface CartItem {
   /** 'custom' is used exclusively for Quick List items */
   priceType: PriceType;
   note?: string;
+  image?: string;
   /**
    * true  → Quick List item (free-text, no catalog product, price TBD)
    * false → Normal catalog item (productId should be set)
