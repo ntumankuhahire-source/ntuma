@@ -1,0 +1,16 @@
+# Ntuma Nkuhahire - Vendor to Door Delivery in Kigali, Rwanda
+# https://ntumankuhahire.com/robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin
+Disallow: /api/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /verify
+
+# Sitemap Location
+Sitemap: https://ntumankuhahire.com/sitemap.xml
+Host: https://ntumankuhahire.com

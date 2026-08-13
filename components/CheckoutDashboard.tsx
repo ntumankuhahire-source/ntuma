@@ -782,7 +782,7 @@ export default function CheckoutDashboard() {
                 </div>
 
                 <a
-                  href={`tel:*334*8*1*880008822*${fixedTotal}#`}
+                  href={`tel:*334*8*1*880008822*${fixedTotal}%23`}
                   className="w-full bg-[#004A8F] hover:bg-[#003666] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
                 >
                   <CreditCard className="w-5 h-5" />
@@ -790,7 +790,7 @@ export default function CheckoutDashboard() {
                 </a>
 
                 <a
-                  href={`tel:*182*8*1*000882*${fixedTotal}#`}
+                  href={`tel:*182*8*1*000882*${fixedTotal}%23`}
                   className="w-full bg-[#FFCC00] hover:bg-[#E6B800] text-slate-900 py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
                 >
                   <CreditCard className="w-5 h-5" />
@@ -798,7 +798,7 @@ export default function CheckoutDashboard() {
                 </a>
 
                 <a
-                  href={`tel:*182*8*1*88000882*${fixedTotal}#`}
+                  href={`tel:*182*8*1*88000882*${fixedTotal}%23`}
                   className="w-full bg-[#E50000] hover:bg-[#CC0000] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
                 >
                   <CreditCard className="w-5 h-5" />

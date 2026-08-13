@@ -1,7 +1,16 @@
 {
+  "id": "https://ntumankuhahire.com/",
   "name": "Ntuma Nkuhahire — Vendor to Door Delivery",
   "short_name": "Ntuma",
   "description": "Vendor to door errand and grocery delivery service operating in Kigali, Rwanda.",
+  "lang": "en-RW",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#047857",
+  "background_color": "#ffffff",
+  "categories": ["shopping", "food", "business"],
   "icons": [
     {
       "src": "/favicon-16x16.png",
@@ -25,10 +34,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "theme_color": "#047857",
-  "background_color": "#ffffff",
-  "display": "standalone",
-  "start_url": "/",
-  "orientation": "portrait"
+  ]
 }

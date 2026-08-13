@@ -1,6 +1,15 @@
 import CheckoutDashboard from '@/components/CheckoutDashboard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Checkout — Ntuma Nkuhahire',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function CheckoutPage() {
   return (

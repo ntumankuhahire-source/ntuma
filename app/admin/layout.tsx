@@ -1,7 +1,12 @@
+import type { Metadata } from 'next'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Ntuma Admin Dashboard',
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default function AdminLayout({

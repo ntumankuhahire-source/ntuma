@@ -3,9 +3,21 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { Shield, Lock, Eye, FileText, Phone, Mail, ArrowLeft } from 'lucide-react';
 
-export const metadata = {
-  title: 'Privacy Policy — Ntuma Nkuhahire',
-  description: 'Privacy Policy for Ntuma Nkuhahire delivery service in Rwanda. Learn how we collect, use, and protect your personal data.',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description:
+    'Privacy Policy for Ntuma Nkuhahire delivery service in Rwanda. Learn how we collect, use, and protect your personal data in Kigali.',
+  alternates: {
+    canonical: '/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy | Ntuma Nkuhahire',
+    description:
+      'Learn how Ntuma Nkuhahire protects customer data, order details, and privacy in Kigali, Rwanda.',
+    url: 'https://ntumankuhahire.com/privacy',
+  },
 };
 
 export default function PrivacyPage() {

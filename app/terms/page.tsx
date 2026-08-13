@@ -3,9 +3,21 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { FileText, ShoppingBag, Truck, RefreshCw, AlertCircle, Phone, Mail, ArrowLeft } from 'lucide-react';
 
-export const metadata = {
-  title: 'Terms of Service — Ntuma Nkuhahire',
-  description: 'Terms of Service for Ntuma Nkuhahire vendor-to-door delivery platform in Rwanda.',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description:
+    'Terms of Service for Ntuma Nkuhahire vendor-to-door grocery and errand delivery platform in Kigali, Rwanda.',
+  alternates: {
+    canonical: '/terms',
+  },
+  openGraph: {
+    title: 'Terms of Service | Ntuma Nkuhahire',
+    description:
+      'Terms of service, pricing, runner dispatch guidelines, and customer conditions for Ntuma Nkuhahire in Kigali, Rwanda.',
+    url: 'https://ntumankuhahire.com/terms',
+  },
 };
 
 export default function TermsPage() {
