@@ -1,7 +1,7 @@
 'use client';
 
 import { useCart, CartItem } from '@/lib/CartContext';
-import { CATEGORIES } from '@/lib/categories';
+import { CATEGORIES, QUICK_LIST_CATEGORY } from '@/lib/categories';
 import { CATALOG } from '@/lib/catalog';
 import { createOrder } from '@/lib/sheetsApi';
 import { useState } from 'react';
@@ -112,6 +112,7 @@ export default function CheckoutDashboard() {
   const { items, fixedTotal, hasPendingPrices, clearCart, updateQuantity, removeItem } = useCart();
   const [budget, setBudget] = useState<string>('');
   const [details, setDetails] = useState({ name: '', phone: '', address: '' });
+  const [paymentMode, setPaymentMode] = useState<'Cash' | 'Mobile Money'>('Cash');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [step, setStep] = useState<1 | 2>(1);
   const [orderId, setOrderId] = useState('');
@@ -162,6 +163,7 @@ export default function CheckoutDashboard() {
         customerName: details.name,
         customerPhone: details.phone,
         location: details.address,
+        modeOfPayment: paymentMode,
         budget: budgetNum,
         items: orderItems,
         total: fixedTotal,
@@ -173,6 +175,7 @@ export default function CheckoutDashboard() {
       let message = `*ORDER ID: ${newOrderId}*\n`;
       message += `*NEW ORDER - NTUMA*\n`;
       message += `Name: ${details.name}\nPhone: ${details.phone}\nAddress: ${details.address}\n`;
+      message += `Payment Method: ${paymentMode}\n`;
       if (budgetNum > 0) message += `Budget: ${budgetNum.toLocaleString()} RWF\n`;
       message += `\n`;
 
@@ -182,15 +185,21 @@ export default function CheckoutDashboard() {
 
         let catFixedTotal = 0;
         catItems.forEach((item) => {
+          const isCustom = item.isCustom || item.priceType === 'custom' || item.category === QUICK_LIST_CATEGORY;
+          const unit = (item.unit || '').trim();
+          const qtyText = isCustom
+            ? (unit && unit !== '—' && unit !== '-' ? unit : `${item.quantity || 1}`)
+            : (unit && unit !== '—' && unit !== '-' ? (/^\d/.test(unit) && item.quantity === 1 ? unit : `${item.quantity} ${unit}`) : `${item.quantity}`);
+
           if (item.priceType === 'fixed' && !item.isCustom) {
             catFixedTotal += item.price * item.quantity;
-            message += `- ${item.quantity} ${item.unit} x ${item.name} (${(
+            message += `- ${qtyText} x ${item.name} (${(
               item.price * item.quantity
             ).toLocaleString()} RWF)\n`;
           } else if (item.isCustom) {
-            message += `- ${item.quantity} ${item.unit} x ${item.name} (Ask price — to confirm)\n`;
+            message += `- ${qtyText} x ${item.name} (Ask price — to confirm)\n`;
           } else {
-            message += `- ${item.quantity} ${item.unit} x ${item.name} (Price to confirm)\n`;
+            message += `- ${qtyText} x ${item.name} (Price to confirm)\n`;
             if (item.note) message += `  Note: ${item.note}\n`;
           }
         });
@@ -313,6 +322,7 @@ export default function CheckoutDashboard() {
         customerDetails={details}
         items={items}
         fixedTotal={fixedTotal}
+        modeOfPayment={paymentMode}
       />
 
       {/* ── TOP PROGRESS STEPPER HEADER (Reference Design) ───────────────────── */}
@@ -666,6 +676,40 @@ export default function CheckoutDashboard() {
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all text-slate-900 font-medium"
                     />
                   </div>
+                  
+                  {/* Mode of Payment Selector */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                      Mode of Payment
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMode('Cash')}
+                        className={`py-2.5 px-3 rounded-xl border text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          paymentMode === 'Cash'
+                            ? 'border-emerald-600 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-500/20 shadow-xs'
+                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        <DollarSign className="w-4 h-4 text-emerald-700" />
+                        Cash
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMode('Mobile Money')}
+                        className={`py-2.5 px-3 rounded-xl border text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          paymentMode === 'Mobile Money'
+                            ? 'border-emerald-600 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-500/20 shadow-xs'
+                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        <CreditCard className="w-4 h-4 text-amber-600" />
+                        Mobile Money
+                      </button>
+                    </div>
+                  </div>
 
                   {/* Optional Target Budget Input */}
                   <div className="pt-2">
@@ -739,8 +783,10 @@ export default function CheckoutDashboard() {
       {/* ── STEP 2: CONFIRM & PAY ────────────────────────────────────────────── */}
       {step === 2 && (
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
+          key="step2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
           className="grid lg:grid-cols-[1fr_360px] gap-8 max-w-5xl mx-auto"
         >
           {/* Left Column: Payment Action */}
@@ -754,8 +800,7 @@ export default function CheckoutDashboard() {
                 Ready to Complete Order
               </h2>
               <p className="text-slate-600 text-sm max-w-md mx-auto">
-                Choose your preferred payment method below. After paying, click the green button to
-                send your order details on WhatsApp.
+                Review your payment mode below and click the green button to confirm your order details on WhatsApp.
               </p>
             </div>
 
@@ -764,14 +809,42 @@ export default function CheckoutDashboard() {
               <div className="bg-[#267E3B] p-6 text-white">
                 <div className="flex items-center gap-3 mb-1">
                   <CreditCard className="w-6 h-6 opacity-90" />
-                  <h3 className="font-display font-bold text-xl">Select Payment Method</h3>
+                  <h3 className="font-display font-bold text-xl">Mode of Payment</h3>
                 </div>
                 <p className="text-white/80 text-sm ml-9">
-                  Tap your network to initiate direct USSD transaction
+                  Selected: <span className="font-bold underline">{paymentMode}</span>
                 </p>
               </div>
 
               <div className="p-6 space-y-4 bg-slate-50/50">
+                {/* Switcher Buttons */}
+                <div className="grid grid-cols-2 gap-2 bg-white p-1.5 rounded-2xl border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMode('Cash')}
+                    className={`py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                      paymentMode === 'Cash'
+                        ? 'bg-[#267E3B] text-white shadow-xs'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <DollarSign className="w-4 h-4" />
+                    Cash
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMode('Mobile Money')}
+                    className={`py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                      paymentMode === 'Mobile Money'
+                        ? 'bg-[#267E3B] text-white shadow-xs'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Mobile Money
+                  </button>
+                </div>
+
                 <div className="flex justify-between items-center bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     AMOUNT TO PAY
@@ -781,33 +854,47 @@ export default function CheckoutDashboard() {
                   </span>
                 </div>
 
-                <a
-                  href={`tel:*334*8*1*880008822*${fixedTotal}%23`}
-                  className="w-full bg-[#004A8F] hover:bg-[#003666] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
-                >
-                  <CreditCard className="w-5 h-5" />
-                  <span>Pay with BK Pay</span>
-                </a>
+                {paymentMode === 'Mobile Money' ? (
+                  <>
+                    <a
+                      href={`tel:*334*8*1*880008822*${fixedTotal}%23`}
+                      className="w-full bg-[#004A8F] hover:bg-[#003666] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
+                    >
+                      <CreditCard className="w-5 h-5" />
+                      <span>Pay with BK Pay</span>
+                    </a>
 
-                <a
-                  href={`tel:*182*8*1*000882*${fixedTotal}%23`}
-                  className="w-full bg-[#FFCC00] hover:bg-[#E6B800] text-slate-900 py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
-                >
-                  <CreditCard className="w-5 h-5" />
-                  <span>Pay with MTN MoMo</span>
-                </a>
+                    <a
+                      href={`tel:*182*8*1*000882*${fixedTotal}%23`}
+                      className="w-full bg-[#FFCC00] hover:bg-[#E6B800] text-slate-900 py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
+                    >
+                      <CreditCard className="w-5 h-5" />
+                      <span>Pay with MTN MoMo</span>
+                    </a>
 
-                <a
-                  href={`tel:*182*8*1*88000882*${fixedTotal}%23`}
-                  className="w-full bg-[#E50000] hover:bg-[#CC0000] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
-                >
-                  <CreditCard className="w-5 h-5" />
-                  <span>Pay with Airtel Money</span>
-                </a>
+                    <a
+                      href={`tel:*182*8*1*88000882*${fixedTotal}%23`}
+                      className="w-full bg-[#E50000] hover:bg-[#CC0000] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm text-sm sm:text-base cursor-pointer"
+                    >
+                      <CreditCard className="w-5 h-5" />
+                      <span>Pay with Airtel Money</span>
+                    </a>
 
-                <p className="text-center text-xs text-slate-500 pt-2">
-                  Tapping automatically pre-fills amount. Enter PIN to complete transfer.
-                </p>
+                    <p className="text-center text-xs text-slate-500 pt-2">
+                      Tapping automatically pre-fills amount. Enter PIN to complete transfer.
+                    </p>
+                  </>
+                ) : (
+                  <div className="bg-white border border-emerald-200 rounded-2xl p-5 text-center space-y-2">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto">
+                      <DollarSign className="w-5 h-5" />
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-sm">Cash on Delivery</h4>
+                    <p className="text-xs text-slate-600">
+                      You will pay directly in cash to the Ntuma runner upon receiving your items.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

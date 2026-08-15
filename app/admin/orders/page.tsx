@@ -59,6 +59,7 @@ export default function OrdersPage() {
   // Filters
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [filterStatus, setFilterStatus]     = useState<string>('all')
+  const [filterPayment, setFilterPayment]   = useState<string>('all')
   const [filterDate, setFilterDate]         = useState<string>('')
 
   // Load orders on mount
@@ -72,6 +73,11 @@ export default function OrdersPage() {
   const filtered = useMemo(() => {
     return orders.filter((o) => {
       if (filterStatus !== 'all' && o.status !== filterStatus) return false
+      if (filterPayment !== 'all') {
+        const pMode = (o.modeOfPayment || 'Cash').toLowerCase()
+        if (filterPayment === 'Cash' && !pMode.includes('cash')) return false
+        if (filterPayment === 'Mobile Money' && !pMode.includes('mobile') && !pMode.includes('momo')) return false
+      }
       if (filterCategory !== 'all') {
         const hasCat = o.items.some(i => i.category === filterCategory)
         if (!hasCat) return false
@@ -82,10 +88,10 @@ export default function OrdersPage() {
       }
       return true
     })
-  }, [orders, filterStatus, filterCategory, filterDate])
+  }, [orders, filterStatus, filterPayment, filterCategory, filterDate])
 
-  const hasFilters = filterStatus !== 'all' || filterCategory !== 'all' || filterDate !== ''
-  const clearFilters = () => { setFilterStatus('all'); setFilterCategory('all'); setFilterDate('') }
+  const hasFilters = filterStatus !== 'all' || filterPayment !== 'all' || filterCategory !== 'all' || filterDate !== ''
+  const clearFilters = () => { setFilterStatus('all'); setFilterPayment('all'); setFilterCategory('all'); setFilterDate('') }
 
   // ── Status update (optimistic) ───────────────────────────────────────────
   const handleStatusChange = useCallback(async (orderId: string, newStatus: OrderStatus) => {
@@ -194,6 +200,23 @@ export default function OrdersPage() {
               </div>
             </div>
 
+            {/* Payment filter */}
+            <div className="flex flex-col gap-1 min-w-[140px]">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Payment</label>
+              <div className="relative">
+                <select
+                  value={filterPayment}
+                  onChange={e => setFilterPayment(e.target.value)}
+                  className="w-full appearance-none bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all cursor-pointer"
+                >
+                  <option value="all">All Payments</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Mobile Money">Mobile Money</option>
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              </div>
+            </div>
+
             {/* Date filter */}
             <div className="flex flex-col gap-1 min-w-[150px]">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</label>
@@ -248,7 +271,7 @@ export default function OrdersPage() {
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50">
                     {[
-                      'Order ID', 'Date', 'Categories', 'Items',
+                      'Order ID', 'Date', 'Payment', 'Categories', 'Items',
                       'Total', 'Customer', 'Location', 'Status', 'Actions'
                     ].map(col => (
                       <th
@@ -290,6 +313,19 @@ export default function OrdersPage() {
                         <td className="px-4 py-3.5">
                           <span className="font-mono text-xs text-slate-600 whitespace-nowrap">
                             {formatDate(order.createdAt)}
+                          </span>
+                        </td>
+
+                        {/* Payment */}
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                              (order.modeOfPayment || 'Cash').toLowerCase().includes('mobile') || (order.modeOfPayment || 'Cash').toLowerCase().includes('momo')
+                                ? 'bg-blue-50 text-blue-800 border-blue-200'
+                                : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                            }`}
+                          >
+                            {order.modeOfPayment || 'Cash'}
                           </span>
                         </td>
 

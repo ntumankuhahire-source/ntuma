@@ -14,6 +14,8 @@ export interface ReceiptData {
   customerLocation: string
   serviceTitle: string
   amount: string
+  transportFee: string
+  otherFee: string
   currency: string
   signatoryName: string
   signatoryTitle: string
@@ -23,8 +25,22 @@ export interface ReceiptData {
   qrPayload: string
 }
 
+function parseNum(val: string): number {
+  const n = Number(val.replace(/,/g, '').trim())
+  return isNaN(n) ? 0 : n
+}
+
+function fmtNum(n: number): string {
+  return n.toLocaleString('en-US')
+}
+
 export function ReceiptPreview({ data }: { data: ReceiptData }) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
+
+  const subtotal = parseNum(data.amount)
+  const transport = parseNum(data.transportFee)
+  const other = parseNum(data.otherFee)
+  const total = subtotal + transport + other
 
   useEffect(() => {
     async function generateQR() {
@@ -33,10 +49,7 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
         const url = await QRCode.toDataURL(payload, {
           margin: 1,
           width: 120,
-          color: {
-            dark: '#0A0A0A',
-            light: '#FFFFFF',
-          },
+          color: { dark: '#0A0A0A', light: '#FFFFFF' },
         })
         setQrCodeUrl(url)
       } catch (err) {
@@ -46,202 +59,158 @@ export function ReceiptPreview({ data }: { data: ReceiptData }) {
     generateQR()
   }, [data.qrPayload, data.receiptNo])
 
+  const currency = data.currency || 'RWF'
+
   return (
     <div
       id="printable-receipt-card"
-      className="bg-white text-slate-900 shadow-xl rounded-xl border border-slate-200 p-5 md:p-6 max-w-[620px] mx-auto select-none transition-all font-body relative overflow-hidden flex flex-col justify-between"
-      style={{ minHeight: '620px' }}
+      style={{
+        background: '#fff',
+        color: '#0f172a',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        width: '100%',
+        maxWidth: '600px',
+        margin: '0 auto',
+        padding: '28px 28px 24px',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 4px 24px 0 rgba(0,0,0,0.10)',
+        position: 'relative',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+      }}
     >
-      {/* Subtle background decoration */}
-      <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-full pointer-events-none" />
+      {/* Background accent */}
+      <div style={{ position: 'absolute', top: 0, right: 0, width: 80, height: 80, background: 'rgba(16,185,129,0.04)', borderBottomLeftRadius: '100%', pointerEvents: 'none' }} />
 
-      <div>
-        {/* TOP HEADER */}
-        <div className="flex justify-between items-start pb-3.5 border-b border-slate-200/80">
-          <div className="flex items-center gap-2.5">
-            <div className="bg-emerald-950 p-2 rounded-lg shadow-sm flex items-center justify-center border border-emerald-800">
-              <Image
-                src="/logo.png"
-                alt="Ntumankuhahire Logo"
-                width={120}
-                height={36}
-                className="h-7 w-auto object-contain brightness-110"
-                priority
-              />
-            </div>
-            <div>
-              <h1 className="text-base font-extrabold tracking-tight text-emerald-950 leading-tight mb-0.5">
-                NTUMANKUHAHIRE
-              </h1>
-              <p className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-                Courier & Delivery Services
-              </p>
-            </div>
+      {/* ── HEADER ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: 14, marginBottom: 14, borderBottom: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ background: '#022c22', padding: '7px 10px', borderRadius: 8, border: '1px solid #065f46', display: 'flex', alignItems: 'center' }}>
+            <Image src="/logo.png" alt="Ntumankuhahire Logo" width={100} height={30} style={{ height: 28, width: 'auto', objectFit: 'contain', filter: 'brightness(1.1)' }} priority />
           </div>
-
-          <div className="text-right">
-            <span className="text-[10px] font-mono font-extrabold tracking-[0.15em] uppercase text-amber-500 block mb-0.5">
-              OFFICIAL RECEIPT
-            </span>
-            <h2 className="text-base font-mono font-black text-slate-900 tracking-tight leading-tight">
-              {data.receiptNo}
-            </h2>
-            <p className="text-[11px] font-medium text-slate-500 mt-0.5">
-              {data.date}
-            </p>
-          </div>
-        </div>
-
-        {/* BILLED TO SECTION */}
-        <div className="pt-3.5 pb-3">
-          <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-amber-600 block mb-1">
-            BILLED TO
-          </span>
-          <h3 className="text-lg font-black text-slate-900 tracking-tight mb-2 min-h-[26px] leading-snug">
-            {data.customerName || ''}
-          </h3>
-
-          <div className="grid grid-cols-3 gap-3 text-[11px] leading-relaxed">
-            <div className="py-0.5">
-              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5 leading-none">
-                CONTACT
-              </span>
-              <p className="font-semibold text-slate-800 break-words leading-snug">
-                {data.customerContact || ''}
-              </p>
-            </div>
-            <div className="py-0.5">
-              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5 leading-none">
-                EMAIL
-              </span>
-              <p className="font-semibold text-slate-800 break-words leading-snug">
-                {data.customerEmail || ''}
-              </p>
-            </div>
-            <div className="py-0.5">
-              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-0.5 leading-none">
-                LOCATION
-              </span>
-              <p className="font-semibold text-slate-800 break-words leading-snug">
-                {data.customerLocation || ''}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* MAIN HERO AMOUNT CARD */}
-        <div className="my-2.5 bg-[#091512] text-white rounded-lg p-4 md:p-5 border border-emerald-900 shadow-md relative overflow-hidden">
-          {/* Subtle accent border on left */}
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-400" />
-
-          <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400/90 mb-2 pl-1 min-h-[14px] leading-normal">
-            {data.serviceTitle || ''}
-          </p>
-
-          <div className="flex items-baseline gap-2 pl-1 min-h-[36px]">
-            <span className="text-3xl md:text-4xl font-mono font-black text-amber-400 tracking-tight leading-none">
-              {data.amount ? (isNaN(Number(data.amount.replace(/,/g, ''))) ? data.amount : Number(data.amount.replace(/,/g, '')).toLocaleString('en-US')) : ''}
-            </span>
-            {data.amount && (
-              <span className="text-xs font-bold text-emerald-200/80 font-mono tracking-wider">
-                {data.currency || 'RWF'}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="my-3 border-t border-slate-200/80" />
-
-        {/* AUTHORIZED SIGNATURE & OFFICIAL SEAL */}
-        <div className="grid grid-cols-2 gap-4 items-end pt-1 pb-3">
-          {/* Signature details */}
           <div>
-            <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
-              AUTHORIZED SIGNATURE
-            </span>
-
-            {/* Cursive Signature Render */}
-            <div className="h-10 flex items-center mb-0.5">
-              <span
-                className="text-2xl text-emerald-950 font-semibold tracking-wide leading-normal"
-                style={{ fontFamily: "'Dancing Script', 'Great Vibes', cursive" }}
-              >
-                {data.signatoryName || 'NTUMANKUHAHIRE'}
-              </span>
-            </div>
-
-            <p className="text-[11px] font-black text-slate-900 leading-snug">
-              {data.signatoryName || 'NTUMANKUHAHIRE'}
-            </p>
-            <p className="text-[10px] font-semibold text-slate-500 tracking-tight uppercase leading-snug">
-              {data.signatoryTitle || 'DIRECTOR'}
-            </p>
-          </div>
-
-          {/* Circular Seal / Official Stamp */}
-          <div className="flex justify-end items-center">
-            <div className="relative w-20 h-20 flex items-center justify-center">
-              <Image
-                src="/stamp.png"
-                alt="Official Stamp"
-                width={90}
-                height={90}
-                className="w-20 h-20 object-contain drop-shadow-sm"
-                priority
-              />
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: '-0.3px', color: '#022c22', lineHeight: 1.2 }}>NTUMANKUHAHIRE</div>
+            <div style={{ fontSize: 9, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 2 }}>Courier &amp; Delivery Services</div>
           </div>
         </div>
-
-        {/* CONTACT INFO FOOTER ROW (Full unclipped line heights) */}
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-700 border-t border-b border-slate-100 py-2.5 mb-3 leading-normal">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Phone className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span className="font-semibold">{data.contactPhone || '0787800703'}</span>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Mail className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span className="font-semibold text-slate-800">{data.contactEmail || 'info.ntumankuhahire.com'}</span>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span className="font-semibold">{data.contactLocation || 'Kigali City'}</span>
-          </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', color: '#f59e0b', textTransform: 'uppercase', marginBottom: 2 }}>OFFICIAL RECEIPT</div>
+          <div style={{ fontSize: 14, fontFamily: 'monospace', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{data.receiptNo}</div>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{data.date}</div>
         </div>
       </div>
 
-      {/* FOOTER BAR WITH QR CODE VERIFIER */}
-      <div className="flex justify-between items-end pt-1 border-t border-slate-100/80">
-        <div>
-          <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400 block mb-0.5">
-            POWERED BY NTUMANKUHAHIRE
-          </span>
-          <span className="inline-flex items-center gap-1 text-[9px] font-medium text-emerald-700">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Authentic Digital Receipt
-          </span>
+      {/* ── BILLED TO ── */}
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 9, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#d97706', marginBottom: 4 }}>BILLED TO</div>
+        <div style={{ fontSize: 16, fontWeight: 900, color: '#0f172a', marginBottom: 8, minHeight: 22, lineHeight: 1.3 }}>{data.customerName}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 10 }}>
+          {[['CONTACT', data.customerContact], ['EMAIL', data.customerEmail], ['LOCATION', data.customerLocation]].map(([label, val]) => (
+            <div key={label}>
+              <div style={{ fontSize: 8, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94a3b8', marginBottom: 2 }}>{label}</div>
+              <div style={{ fontWeight: 600, color: '#1e293b', wordBreak: 'break-word', lineHeight: 1.4 }}>{val}</div>
+            </div>
+          ))}
         </div>
+      </div>
 
-        {/* QR Code Container */}
-        <div className="flex flex-col items-center">
+      {/* ── AMOUNT CARD ── */}
+      <div style={{ background: '#091512', borderRadius: 10, padding: '14px 16px', marginBottom: 12, border: '1px solid #065f46', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: 5, height: '100%', background: '#fbbf24' }} />
+        <div style={{ paddingLeft: 8 }}>
+          <div style={{ fontSize: 9, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(52,211,153,0.85)', marginBottom: 8, lineHeight: 1 }}>{data.serviceTitle}</div>
+
+          {/* Line items */}
+          <div style={{ marginBottom: 8, fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>
+            {subtotal > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                <span>Products subtotal</span>
+                <span style={{ fontFamily: 'monospace' }}>{fmtNum(subtotal)} {currency}</span>
+              </div>
+            )}
+            {transport > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                <span>Transport fee</span>
+                <span style={{ fontFamily: 'monospace' }}>{fmtNum(transport)} {currency}</span>
+              </div>
+            )}
+            {other > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                <span>Other fees</span>
+                <span style={{ fontFamily: 'monospace' }}>{fmtNum(other)} {currency}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Total */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+            <span style={{ fontSize: 30, fontFamily: 'monospace', fontWeight: 900, color: '#fbbf24', letterSpacing: '-1px', lineHeight: 1 }}>
+              {total > 0 ? fmtNum(total) : (subtotal > 0 ? fmtNum(subtotal) : '')}
+            </span>
+            {(total > 0 || subtotal > 0) && (
+              <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 700, color: 'rgba(209,250,229,0.8)' }}>{currency}</span>
+            )}
+          </div>
+          {(transport > 0 || other > 0) && subtotal > 0 && (
+            <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)', marginTop: 2, fontFamily: 'monospace' }}>TOTAL INCL. FEES</div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ borderTop: '1px solid #e2e8f0', margin: '12px 0' }} />
+
+      {/* ── SIGNATURE + SEAL ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'flex-end', marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 8, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#94a3b8', marginBottom: 4 }}>AUTHORIZED SIGNATURE</div>
+          <div style={{ height: 36, display: 'flex', alignItems: 'center', marginBottom: 2 }}>
+            <span style={{ fontSize: 22, fontFamily: "'Dancing Script', 'Great Vibes', cursive", fontWeight: 600, color: '#022c22', letterSpacing: '0.02em' }}>
+              {data.signatoryName || 'NTUMANKUHAHIRE'}
+            </span>
+          </div>
+          <div style={{ fontSize: 10, fontWeight: 900, color: '#0f172a', lineHeight: 1.3 }}>{data.signatoryName || 'NTUMANKUHAHIRE'}</div>
+          <div style={{ fontSize: 9, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{data.signatoryTitle || 'DIRECTOR'}</div>
+        </div>
+        <div style={{ width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <Image src="/stamp.png" alt="Official Stamp" width={72} height={72} style={{ width: 72, height: 72, objectFit: 'contain' }} priority />
+        </div>
+      </div>
+
+      {/* ── CONTACT ROW ── */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 10, color: '#475569', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', padding: '8px 0', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Phone size={11} style={{ color: '#f59e0b', flexShrink: 0 }} />
+          <span style={{ fontWeight: 600 }}>{data.contactPhone || '0787800703'}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Mail size={11} style={{ color: '#f59e0b', flexShrink: 0 }} />
+          <span style={{ fontWeight: 600 }}>{data.contactEmail || 'info.ntumankuhahire.com'}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <MapPin size={11} style={{ color: '#f59e0b', flexShrink: 0 }} />
+          <span style={{ fontWeight: 600 }}>{data.contactLocation || 'Kigali City'}</span>
+        </div>
+      </div>
+
+      {/* ── FOOTER: POWERED BY + QR ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <div style={{ fontSize: 8, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#94a3b8', marginBottom: 3 }}>POWERED BY NTUMANKUHAHIRE</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: '#059669', fontWeight: 600 }}>
+            <CheckCircle2 size={11} style={{ color: '#059669' }} />
+            Verified Authentic Digital Receipt
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {qrCodeUrl ? (
-            <div className="p-0.5 bg-white border border-slate-200 rounded-md shadow-xs">
-              <Image
-                src={qrCodeUrl}
-                alt="Receipt Verification QR Code"
-                width={54}
-                height={54}
-                className="w-13 h-13 object-contain"
-                unoptimized
-              />
+            <div style={{ padding: 2, border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff' }}>
+              <Image src={qrCodeUrl} alt="Receipt Verification QR Code" width={52} height={52} style={{ width: 52, height: 52, display: 'block' }} unoptimized />
             </div>
           ) : (
-            <div className="w-13 h-13 bg-slate-100 border border-slate-200 rounded-md flex items-center justify-center text-[8px] text-slate-400">
-              QR Code
-            </div>
+            <div style={{ width: 52, height: 52, background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, color: '#94a3b8' }}>QR Code</div>
           )}
-          <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-slate-400 mt-0.5">
-            VERIFY
-          </span>
+          <div style={{ fontSize: 7, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#94a3b8', marginTop: 3 }}>VERIFY</div>
         </div>
       </div>
     </div>

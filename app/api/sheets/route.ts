@@ -20,7 +20,7 @@ async function ensureHeaders(sheets: any, spreadsheetId: string) {
     const requiredSheets: Record<string, string[]> = {
       Categories: ['id', 'name', 'description', 'createdAt'],
       Products: ['id', 'name', 'category', 'price', 'unit', 'description', 'Image URL', 'createdAt'],
-      Orders: ['id', 'createdAt', 'customerName', 'customerPhone', 'location', 'budget', 'total', 'status'],
+      Orders: ['id', 'createdAt', 'customerName', 'customerPhone', 'location', 'ModeofPayment', 'budget', 'total', 'status'],
       OrderItems: ['id', 'orderId', 'category', 'productName', 'qty', 'unit', 'price', 'subtotal', 'isCustom'],
     };
 
@@ -126,6 +126,7 @@ export async function GET(req: NextRequest) {
 
         return {
           ...o,
+          modeOfPayment: o.ModeofPayment || o.modeOfPayment || o['Mode of Payment'] || 'Cash',
           budget: Number(o.budget) || 0,
           total: Number(o.total) || 0,
           items: orderItems,
@@ -280,6 +281,7 @@ export async function POST(req: NextRequest) {
     if (action === 'createOrder') {
       const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
       const createdAt = new Date().toISOString();
+      const modeOfPayment = data.modeOfPayment || data.ModeofPayment || data['Mode of Payment'] || 'Cash';
 
       const orderRow = [
         orderId,
@@ -287,14 +289,15 @@ export async function POST(req: NextRequest) {
         data.customerName || '',
         data.customerPhone || '',
         data.location || '',
-        data.budget || 0,
-        data.total || 0,
+        modeOfPayment,
+        Number(data.budget) || 0,
+        Number(data.total) || 0,
         'Pending',
       ];
 
       await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: 'Orders!A:H',
+        range: 'Orders!A:I',
         valueInputOption: 'USER_ENTERED',
         requestBody: { values: [orderRow] },
       });
@@ -351,6 +354,7 @@ export async function POST(req: NextRequest) {
         customerName: data.customerName || '',
         customerPhone: data.customerPhone || '',
         location: data.location || '',
+        modeOfPayment,
         budget: Number(data.budget) || 0,
         total: Number(data.total) || 0,
         status: 'Pending',
@@ -363,7 +367,7 @@ export async function POST(req: NextRequest) {
     if (action === 'updateOrderStatus') {
       const res = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: 'Orders!A:H',
+        range: 'Orders!A:I',
       });
       const rows = res.data.values || [];
       const rowIndex = rows.findIndex((row: any[]) => row[0] === data.id);

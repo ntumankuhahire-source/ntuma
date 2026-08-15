@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useRef } from 'react'
-import { X, Phone, MapPin, Calendar, Hash, Download, Package } from 'lucide-react'
+import { X, Phone, MapPin, Calendar, Hash, Download, Package, CreditCard } from 'lucide-react'
 import type { Order, OrderStatus } from '@/lib/sheetsApi'
 import { CATEGORIES, QUICK_LIST_CATEGORY } from '@/lib/categories'
 import { downloadOrderInvoice } from './OrderInvoice'
@@ -127,6 +127,11 @@ export function OrderDetailPanel({ order, open, onClose, onStatusChange }: Order
               )}
 
               <div className="flex items-center gap-2 text-sm text-slate-500">
+                <CreditCard className="w-4 h-4 shrink-0 text-slate-400" />
+                <span>Payment: <span className="font-semibold text-slate-700">{order.modeOfPayment || 'Cash'}</span></span>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-slate-500">
                 <Calendar className="w-4 h-4 shrink-0 text-slate-400" />
                 <span>{dateStr}</span>
               </div>
@@ -207,7 +212,9 @@ export function OrderDetailPanel({ order, open, onClose, onStatusChange }: Order
                             }`}>{catName}</p>
                           </td>
                           <td className="px-4 py-3 text-right font-mono text-slate-600">
-                            {item.qty} {item.unit}
+                            {isQuickList
+                              ? (item.unit && item.unit !== '—' && item.unit !== '-' ? item.unit : item.qty)
+                              : (item.unit && item.unit !== '—' && item.unit !== '-' ? (/^\d/.test(item.unit) && item.qty === 1 ? item.unit : `${item.qty} ${item.unit}`) : item.qty)}
                           </td>
                           <td className="px-4 py-3 text-right">
                             {isQuickList ? (

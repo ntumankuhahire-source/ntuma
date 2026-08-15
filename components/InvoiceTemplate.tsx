@@ -22,6 +22,7 @@ interface InvoiceProps {
   };
   items: InvoiceItem[];
   fixedTotal: number;
+  modeOfPayment?: string;
 }
 
 export const generateInvoicePDF = async (elementId: string, orderId: string) => {
@@ -46,16 +47,29 @@ export const generateInvoicePDF = async (elementId: string, orderId: string) => 
     });
     
     const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
     
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    let heightLeft = pdfHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - pdfHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+    }
+
     pdf.save(`Ntuma_Invoice_${orderId}.pdf`);
   } finally {
     element.style.display = originalDisplay;
   }
 };
 
-export default function InvoiceTemplate({ orderId, customerDetails, items, fixedTotal }: InvoiceProps) {
+export default function InvoiceTemplate({ orderId, customerDetails, items, fixedTotal, modeOfPayment }: InvoiceProps) {
   const date = new Date().toLocaleDateString('en-RW', {
     year: 'numeric',
     month: 'long',
@@ -106,11 +120,18 @@ export default function InvoiceTemplate({ orderId, customerDetails, items, fixed
       </div>
 
       {/* Bill To */}
-      <div className="mb-12 bg-emerald-50/50 p-6 border-l-4 border-[#FACC15] rounded-r-xl">
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-2">Billed To</h3>
-        <p className="font-bold text-xl text-emerald-900 mb-1">{customerDetails.name}</p>
-        <p className="text-slate-600 font-medium">{customerDetails.address}</p>
-        <p className="text-slate-600 font-medium">{customerDetails.phone}</p>
+      <div className="mb-12 bg-emerald-50/50 p-6 border-l-4 border-[#FACC15] rounded-r-xl flex justify-between items-start">
+        <div>
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-2">Billed To</h3>
+          <p className="font-bold text-xl text-emerald-900 mb-1">{customerDetails.name}</p>
+          <p className="text-slate-600 font-medium">{customerDetails.address}</p>
+          <p className="text-slate-600 font-medium">{customerDetails.phone}</p>
+        </div>
+        <div className="text-right">
+          <span className="inline-block bg-[#FACC15]/30 text-emerald-900 border border-[#FACC15] px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
+            Payment: {modeOfPayment || 'Cash'}
+          </span>
+        </div>
       </div>
 
       {/* Items Table */}
@@ -124,18 +145,26 @@ export default function InvoiceTemplate({ orderId, customerDetails, items, fixed
           </tr>
         </thead>
         <tbody>
-          {items.map((item, index) => (
-            <tr key={index} className="border-b border-slate-100 last:border-b-0">
-              <td className="py-5 text-sm font-bold text-emerald-950">{item.name}</td>
-              <td className="py-5 text-sm text-center font-medium text-slate-600">{item.quantity} {item.unit}</td>
-              <td className="py-5 text-sm text-right font-medium text-slate-600">
-                {item.priceType === 'fixed' ? `${item.price.toLocaleString()} RWF` : 'TBD'}
-              </td>
-              <td className="py-5 text-sm text-right font-bold text-emerald-950">
-                {item.priceType === 'fixed' ? `${(item.price * item.quantity).toLocaleString()} RWF` : 'TBD'}
-              </td>
-            </tr>
-          ))}
+          {items.map((item, index) => {
+            const isCustom = item.priceType === 'custom' || (item as any).isCustom;
+            const unit = (item.unit || '').trim();
+            const qtyText = isCustom
+              ? (unit && unit !== '—' && unit !== '-' ? unit : `${item.quantity || 1}`)
+              : (unit && unit !== '—' && unit !== '-' ? (/^\d/.test(unit) && item.quantity === 1 ? unit : `${item.quantity} ${unit}`) : `${item.quantity}`);
+
+            return (
+              <tr key={index} className="border-b border-slate-100 last:border-b-0">
+                <td className="py-5 text-sm font-bold text-emerald-950">{item.name}</td>
+                <td className="py-5 text-sm text-center font-medium text-slate-600">{qtyText}</td>
+                <td className="py-5 text-sm text-right font-medium text-slate-600">
+                  {item.priceType === 'fixed' ? `${item.price.toLocaleString()} RWF` : 'TBD'}
+                </td>
+                <td className="py-5 text-sm text-right font-bold text-emerald-950">
+                  {item.priceType === 'fixed' ? `${(item.price * item.quantity).toLocaleString()} RWF` : 'TBD'}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 

@@ -62,12 +62,19 @@ export type OrderItem = {
  * A customer order.
  * Matches the "Orders" tab schema in Google Sheets.
  */
+export type ModeOfPayment = 'Cash' | 'Mobile Money' | string;
+
+/**
+ * A customer order.
+ * Matches the "Orders" tab schema in Google Sheets.
+ */
 export type Order = {
   id: string;             // format: "ORD-XXXXXX"
   createdAt: string;      // ISO 8601
   customerName: string;
   customerPhone: string;
   location: string;
+  modeOfPayment?: string; // e.g. "Cash" | "Mobile Money"
   budget: number;         // 0 if no budget set
   total: number;          // confirmed fixed total
   status: OrderStatus;
@@ -79,6 +86,7 @@ export type CreateOrderInput = {
   customerName: string;
   customerPhone: string;
   location: string;
+  modeOfPayment?: string;
   budget: number;
   items: {
     category: string;
@@ -246,6 +254,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     customerName: input.customerName,
     customerPhone: input.customerPhone,
     location: input.location,
+    modeOfPayment: input.modeOfPayment || 'Cash',
     budget: input.budget,
     total: input.total,
     status: 'Pending',

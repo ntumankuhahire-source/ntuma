@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import type { Order } from '@/lib/sheetsApi';
+import type { Order, OrderItem } from '@/lib/sheetsApi';
 import { CATEGORIES, QUICK_LIST_CATEGORY } from '@/lib/categories';
 
 async function getLogoBase64(): Promise<string | null> {
@@ -28,17 +28,39 @@ async function getLogoBase64(): Promise<string | null> {
   });
 }
 
+function formatQty(item: OrderItem): string {
+  const isQuickList = item.isCustom || item.category === QUICK_LIST_CATEGORY || item.category === 'Quick List';
+  const unit = (item.unit || '').trim();
+
+  if (isQuickList) {
+    if (unit && unit !== '—' && unit !== '-') {
+      return unit;
+    }
+    return `${item.qty || 1}`;
+  }
+
+  if (!unit || unit === '—' || unit === '-') {
+    return `${item.qty}`;
+  }
+
+  if (/^\d/.test(unit) && item.qty === 1) {
+    return unit;
+  }
+
+  return `${item.qty} ${unit}`;
+}
+
 /**
  * Generate and download a branded PDF invoice for an admin order.
- *
- * Uses jsPDF (already in project deps) with pure programmatic drawing —
- * no html2canvas dependency, works in any environment.
+ * Supports multi-page pagination when orders have many items.
  */
 export async function downloadOrderInvoice(order: Order): Promise<void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();   // 210
+  const pageH = doc.internal.pageSize.getHeight();  // 297
   const margin = 18;
   const contentW = pageW - margin * 2;
+  const maxContentY = pageH - 28; // leaves space for footer
 
   // ── Color palette ─────────────────────────────────────────────────────────
   const emerald   = [4,  120, 87]  as [number, number, number]; // #047857
@@ -46,8 +68,6 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
   const blackText = [10,  10,  10] as [number, number, number]; // #0A0A0A
   const slateText = [100, 116, 139]as [number, number, number]; // slate-500
   const slateRule = [226, 232, 240]as [number, number, number]; // slate-200
-
-  let y = 0;
 
   // ── Helper: horizontal rule ────────────────────────────────────────────────
   const hRule = (yPos: number, color = slateRule, thickness = 0.3) => {
@@ -66,10 +86,75 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
     doc.text(text, x, yPos, options);
   };
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // HEADER
-  // ══════════════════════════════════════════════════════════════════════════
+  const colX = {
+    cat:     margin + 2,
+    product: margin + 38,
+    qty:     margin + 105,
+    price:   margin + 130,
+    subtotal:pageW - margin - 2,
+  };
+
   const logoBase64 = await getLogoBase64();
+
+  // Helper to draw items table header
+  const drawTableHeader = (startY: number) => {
+    doc.setFillColor(...emerald);
+    doc.rect(margin, startY, contentW, 8, 'F');
+
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    txt('CATEGORY',  colX.cat,      startY + 5.5);
+    txt('PRODUCT',   colX.product,  startY + 5.5);
+    txt('QTY',       colX.qty,      startY + 5.5, { align: 'center' });
+    txt('UNIT PRICE',colX.price,    startY + 5.5, { align: 'right' });
+    txt('SUBTOTAL',  colX.subtotal, startY + 5.5, { align: 'right' });
+  };
+
+  // Helper to draw continuation header on page 2+
+  const drawContinuationHeader = (includeTableHeader = true): number => {
+    let topY = 12;
+
+    // Mini brand header
+    if (logoBase64) {
+      try {
+        doc.setFillColor(...yellow);
+        doc.roundedRect(margin, topY, 10, 10, 1.5, 1.5, 'F');
+        doc.addImage(logoBase64, 'PNG', margin + 0.5, topY + 0.5, 9, 9);
+      } catch {
+        doc.setFillColor(...yellow);
+        doc.roundedRect(margin, topY, 10, 10, 1.5, 1.5, 'F');
+      }
+    } else {
+      doc.setFillColor(...yellow);
+      doc.roundedRect(margin, topY, 10, 10, 1.5, 1.5, 'F');
+    }
+
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...emerald);
+    txt('NTUMA', margin + 14, topY + 7);
+
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...slateText);
+    txt(`INVOICE: ${order.id} (Continued)`, pageW - margin, topY + 7, { align: 'right' });
+
+    topY += 14;
+    hRule(topY, emerald, 0.8);
+    topY += 4;
+
+    if (includeTableHeader) {
+      drawTableHeader(topY);
+      topY += 8;
+    }
+
+    return topY;
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 1: HEADER & BILL TO
+  // ══════════════════════════════════════════════════════════════════════════
   if (logoBase64) {
     try {
       doc.setFillColor(...yellow);
@@ -128,7 +213,7 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
   doc.setTextColor(...slateText);
   txt(dateStr, pageW - margin, 31, { align: 'right' });
 
-  y = 38;
+  let y = 38;
   // Thick emerald underline
   doc.setDrawColor(...emerald);
   doc.setLineWidth(1.2);
@@ -169,48 +254,43 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
   };
   const [bgCol, fgCol] = statusColors[order.status] ?? [[226,232,240],[100,116,139]];
   doc.setFillColor(...bgCol);
-  doc.roundedRect(pageW - margin - 30, y + 6, 30, 8, 2, 2, 'F');
-  doc.setFontSize(7.5);
+  doc.roundedRect(pageW - margin - 30, y + 5, 30, 7, 2, 2, 'F');
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...fgCol);
-  txt(order.status.toUpperCase(), pageW - margin - 15, y + 11.5, { align: 'center' });
+  txt(order.status.toUpperCase(), pageW - margin - 15, y + 9.8, { align: 'center' });
+
+  // Mode of payment indicator
+  const pMode = (order.modeOfPayment || 'Cash').toUpperCase();
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...slateText);
+  txt(`PAYMENT: ${pMode}`, pageW - margin - 3, y + 21, { align: 'right' });
 
   y += 36;
 
   // ══════════════════════════════════════════════════════════════════════════
-  // ITEMS TABLE HEADER
+  // ITEMS TABLE
   // ══════════════════════════════════════════════════════════════════════════
-  doc.setFillColor(...emerald);
-  doc.rect(margin, y, contentW, 8, 'F');
-
-  const colX = {
-    cat:     margin + 2,
-    product: margin + 38,
-    qty:     margin + 105,
-    price:   margin + 130,
-    subtotal:pageW - margin - 2,
-  };
-
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 255, 255);
-  txt('CATEGORY',  colX.cat,      y + 5.5);
-  txt('PRODUCT',   colX.product,  y + 5.5);
-  txt('QTY',       colX.qty,      y + 5.5, { align: 'center' });
-  txt('UNIT PRICE',colX.price,    y + 5.5, { align: 'right' });
-  txt('SUBTOTAL',  colX.subtotal, y + 5.5, { align: 'right' });
-
+  drawTableHeader(y);
   y += 8;
 
   // ── Rows ──────────────────────────────────────────────────────────────────
   order.items.forEach((item, idx) => {
     const rowH = 9;
+
+    // Check if row would overflow page
+    if (y + rowH > maxContentY) {
+      doc.addPage();
+      y = drawContinuationHeader(true);
+    }
+
     if (idx % 2 === 0) {
       doc.setFillColor(248, 250, 252); // slate-50
       doc.rect(margin, y, contentW, rowH, 'F');
     }
 
-    const isQuickList = item.isCustom || item.category === QUICK_LIST_CATEGORY;
+    const isQuickList = item.isCustom || item.category === QUICK_LIST_CATEGORY || item.category === 'Quick List';
     const catName = isQuickList ? 'Quick List' : (CATEGORIES.find(c => c.id === item.category)?.name ?? item.category);
 
     doc.setFontSize(8);
@@ -225,8 +305,9 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
     const productLabel = item.productName.length > 26 ? item.productName.slice(0, 24) + '…' : item.productName;
     txt(productLabel, colX.product, y + 6);
 
-    // Qty + unit
-    txt(`${item.qty} ${item.unit}`, colX.qty, y + 6, { align: 'center' });
+    // Qty + unit formatted properly
+    const qtyText = formatQty(item);
+    txt(qtyText, colX.qty, y + 6, { align: 'center' });
 
     if (isQuickList) {
       // Ask price items — show placeholder text
@@ -253,6 +334,12 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
   // ══════════════════════════════════════════════════════════════════════════
   // TOTALS
   // ══════════════════════════════════════════════════════════════════════════
+  const totalsNeeded = order.budget > 0 ? 46 : 36;
+  if (y + totalsNeeded > maxContentY) {
+    doc.addPage();
+    y = drawContinuationHeader(false);
+  }
+
   y += 6;
   const totalsX = pageW - margin - 80;
   const totalsW = 80;
@@ -295,19 +382,32 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // FOOTER
+  // FOOTER (Rendered on all pages)
   // ══════════════════════════════════════════════════════════════════════════
-  const footerY = doc.internal.pageSize.getHeight() - 20;
-  hRule(footerY - 4, slateRule);
-  doc.setFontSize(8.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...emerald);
-  txt('Thank you for choosing Ntuma!', pageW / 2, footerY, { align: 'center' });
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...slateText);
-  txt('Final amounts will be confirmed by your runner on WhatsApp.', pageW / 2, footerY + 4.5, { align: 'center' });
-  txt('Owner Contact: +250 787 800 703  |  info@ntumankuhahire.com', pageW / 2, footerY + 9, { align: 'center' });
+  const totalPages = doc.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    const footerY = pageH - 18;
+    hRule(footerY - 4, slateRule, 0.3);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...emerald);
+    txt('Thank you for choosing Ntuma!', pageW / 2, footerY, { align: 'center' });
+
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...slateText);
+    txt('Final amounts will be confirmed by your runner on WhatsApp.', pageW / 2, footerY + 4.5, { align: 'center' });
+    txt('Owner Contact: +250 787 800 703  |  info@ntumankuhahire.com', pageW / 2, footerY + 8.5, { align: 'center' });
+
+    if (totalPages > 1) {
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...slateText);
+      txt(`Page ${p} of ${totalPages}`, pageW - margin, footerY + 8.5, { align: 'right' });
+    }
+  }
 
   // Save
   doc.save(`Ntuma_Order_${order.id}.pdf`);
