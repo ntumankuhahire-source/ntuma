@@ -301,3 +301,35 @@ export async function updateOrderStatus(
     return { success: false, error: 'Network error updating order status' };
   }
 }
+
+export async function deleteOrder(id: string): Promise<ApiResponse<void>> {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteOrder', id }),
+    });
+    const json: ApiResponse<void> = await res.json();
+    if (json.success) return json;
+    return { success: false, error: json.error || 'Failed to delete order' };
+  } catch (error) {
+    console.error('Failed to delete order via API:', error);
+    return { success: false, error: 'Network error deleting order' };
+  }
+}
+
+export async function updateOrder(id: string, updates: Partial<Order>): Promise<ApiResponse<void>> {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateOrder', id, ...updates }),
+    });
+    const json: ApiResponse<void> = await res.json();
+    if (json.success) return json;
+    return { success: false, error: json.error || 'Failed to update order' };
+  } catch (error) {
+    console.error('Failed to update order via API:', error);
+    return { success: false, error: 'Network error updating order' };
+  }
+}

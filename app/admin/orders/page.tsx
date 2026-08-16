@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { Eye, Download, ChevronDown, SlidersHorizontal, X, Phone, Package, FileText, FileSpreadsheet } from 'lucide-react'
+import { Eye, Download, ChevronDown, SlidersHorizontal, X, Phone, Package, FileText, FileSpreadsheet, Edit2, Trash2 } from 'lucide-react'
 import { AdminTopbar } from '@/components/admin/AdminTopbar'
 import { OrderDetailPanel } from '@/components/admin/OrderDetailPanel'
 import { downloadOrderInvoice, downloadOrderInvoiceExcel } from '@/components/admin/OrderInvoice'
-import { listOrders, updateOrderStatus } from '@/lib/sheetsApi'
+import { listOrders, updateOrderStatus, deleteOrder } from '@/lib/sheetsApi'
 import type { Order, OrderStatus } from '@/lib/sheetsApi'
 import { CATEGORIES, QUICK_LIST_CATEGORY } from '@/lib/categories'
 
@@ -117,6 +117,43 @@ export default function OrdersPage() {
     setPanelOpen(true)
   }
   const closePanel = () => setPanelOpen(false)
+
+  // ── Order update & delete handlers ────────────────────────────────────────
+  const [deletingOrder, setDeletingOrder] = useState<Order | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleOrderUpdated = (updated: Order) => {
+    setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)))
+    if (selectedOrder?.id === updated.id) {
+      setSelectedOrder(updated)
+    }
+  }
+
+  const handleOrderDeleted = (orderId: string) => {
+    setOrders((prev) => prev.filter((o) => o.id !== orderId))
+    if (selectedOrder?.id === orderId) {
+      setSelectedOrder(null)
+      setPanelOpen(false)
+    }
+  }
+
+  const confirmDeleteOrder = async () => {
+    if (!deletingOrder) return
+    setIsDeleting(true)
+    try {
+      const res = await deleteOrder(deletingOrder.id)
+      if (res.success) {
+        handleOrderDeleted(deletingOrder.id)
+        setDeletingOrder(null)
+      } else {
+        alert(res.error || 'Failed to delete order')
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error deleting order')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   // ── Summary stats ─────────────────────────────────────────────────────────
   const totalRevenue = orders
@@ -418,10 +455,17 @@ export default function OrdersPage() {
                           <div className="flex items-center gap-1 justify-end">
                             <button
                               onClick={() => openPanel(order)}
-                              title="View order details"
-                              className="p-2 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+                              title="View & Edit order details"
+                              className="p-2 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition-colors flex items-center gap-1 text-xs font-semibold"
                             >
                               <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => openPanel(order)}
+                              title="Edit order"
+                              className="p-2 rounded-lg text-slate-500 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                            >
+                              <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => downloadOrderInvoice(order)}
@@ -437,6 +481,13 @@ export default function OrdersPage() {
                             >
                               <FileSpreadsheet className="w-4 h-4" />
                             </button>
+                            <button
+                              onClick={() => setDeletingOrder(order)}
+                              title="Delete order"
+                              className="p-2 rounded-lg text-slate-400 hover:text-red-700 hover:bg-red-50 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -450,12 +501,46 @@ export default function OrdersPage() {
 
       </div>
 
+      {/* Delete Confirmation Modal */}
+      {deletingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl border border-slate-100 animate-in zoom-in-95">
+            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="font-bold text-lg text-slate-900">Delete Order?</h3>
+              <p className="text-xs text-slate-500">
+                Are you sure you want to delete order <strong className="font-mono text-slate-700">{deletingOrder.id}</strong>? This action will permanently remove it from Google Sheets.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => setDeletingOrder(null)}
+                className="w-1/2 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteOrder}
+                disabled={isDeleting}
+                className="w-1/2 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Order Detail Panel ────────────────────────────────────────────── */}
       <OrderDetailPanel
         order={selectedOrder}
         open={panelOpen}
         onClose={closePanel}
         onStatusChange={handleStatusChange}
+        onOrderUpdated={handleOrderUpdated}
+        onOrderDeleted={handleOrderDeleted}
       />
     </div>
   )

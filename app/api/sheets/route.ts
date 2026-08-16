@@ -394,6 +394,188 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: `Order updated to ${data.status}` });
     }
 
+    if (action === 'deleteOrder') {
+      const orderId = data.id;
+      if (!orderId) {
+        return NextResponse.json({ success: false, error: 'Order ID is required' }, { status: 400 });
+      }
+
+      const sheetRes = await sheets.spreadsheets.get({ spreadsheetId });
+      const sheetsList = sheetRes.data.sheets || [];
+      const ordersSheetObj = sheetsList.find((s: any) => s.properties.title === 'Orders');
+      const itemsSheetObj = sheetsList.find((s: any) => s.properties.title === 'OrderItems');
+      const ordersSheetId = ordersSheetObj?.properties?.sheetId;
+      const itemsSheetId = itemsSheetObj?.properties?.sheetId;
+
+      const ordersRes = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'Orders!A:A',
+      });
+      const orderRows = ordersRes.data.values || [];
+      const orderRowIndex = orderRows.findIndex((row: any[]) => row[0] === orderId);
+
+      const deleteRequests: any[] = [];
+      if (orderRowIndex !== -1 && ordersSheetId !== undefined) {
+        deleteRequests.push({
+          deleteDimension: {
+            range: {
+              sheetId: ordersSheetId,
+              dimension: 'ROWS',
+              startIndex: orderRowIndex,
+              endIndex: orderRowIndex + 1,
+            },
+          },
+        });
+      }
+
+      const itemsRes = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'OrderItems!A:B',
+      });
+      const itemRows = itemsRes.data.values || [];
+      const matchingIndices: number[] = [];
+      itemRows.forEach((row: any[], idx: number) => {
+        if (row[1] === orderId) {
+          matchingIndices.push(idx);
+        }
+      });
+
+      matchingIndices.reverse().forEach((idx) => {
+        if (itemsSheetId !== undefined) {
+          deleteRequests.push({
+            deleteDimension: {
+              range: {
+                sheetId: itemsSheetId,
+                dimension: 'ROWS',
+                startIndex: idx,
+                endIndex: idx + 1,
+              },
+            },
+          });
+        }
+      });
+
+      if (deleteRequests.length > 0) {
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId,
+          requestBody: { requests: deleteRequests },
+        });
+      }
+
+      return NextResponse.json({ success: true, message: `Order ${orderId} deleted successfully` });
+    }
+
+    if (action === 'updateOrder') {
+      const orderId = data.id;
+      if (!orderId) {
+        return NextResponse.json({ success: false, error: 'Order ID is required' }, { status: 400 });
+      }
+
+      const res = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'Orders!A:I',
+      });
+      const rows = res.data.values || [];
+      const rowIndex = rows.findIndex((row: any[]) => row[0] === orderId);
+
+      if (rowIndex === -1) {
+        return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
+      }
+
+      const headers = rows[0].map((h: any) => String(h).trim());
+      const currentRow = [...rows[rowIndex]];
+
+      if (data.customerName !== undefined) currentRow[headers.indexOf('customerName')] = data.customerName;
+      if (data.customerPhone !== undefined) currentRow[headers.indexOf('customerPhone')] = data.customerPhone;
+      if (data.location !== undefined) currentRow[headers.indexOf('location')] = data.location;
+      if (data.modeOfPayment !== undefined || data.ModeofPayment !== undefined) {
+        const modeIdx = headers.indexOf('ModeofPayment') !== -1 ? headers.indexOf('ModeofPayment') : 5;
+        currentRow[modeIdx] = data.modeOfPayment || data.ModeofPayment;
+      }
+      if (data.budget !== undefined) currentRow[headers.indexOf('budget')] = Number(data.budget);
+      if (data.total !== undefined) currentRow[headers.indexOf('total')] = Number(data.total);
+      if (data.status !== undefined) currentRow[headers.indexOf('status')] = data.status;
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `Orders!A${rowIndex + 1}:I${rowIndex + 1}`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: { values: [currentRow] },
+      });
+
+      if (Array.isArray(data.items)) {
+        const sheetRes = await sheets.spreadsheets.get({ spreadsheetId });
+        const sheetsList = sheetRes.data.sheets || [];
+        const itemsSheetObj = sheetsList.find((s: any) => s.properties.title === 'OrderItems');
+        const itemsSheetId = itemsSheetObj?.properties?.sheetId;
+
+        const itemsRes = await sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: 'OrderItems!A:B',
+        });
+        const itemRows = itemsRes.data.values || [];
+        const itemDeleteRequests: any[] = [];
+        itemRows.forEach((row: any[], idx: number) => {
+          if (row[1] === orderId) {
+            itemDeleteRequests.push(idx);
+          }
+        });
+
+        const batchDelRequests: any[] = [];
+        itemDeleteRequests.reverse().forEach((idx) => {
+          if (itemsSheetId !== undefined) {
+            batchDelRequests.push({
+              deleteDimension: {
+                range: {
+                  sheetId: itemsSheetId,
+                  dimension: 'ROWS',
+                  startIndex: idx,
+                  endIndex: idx + 1,
+                },
+              },
+            });
+          }
+        });
+
+        if (batchDelRequests.length > 0) {
+          await sheets.spreadsheets.batchUpdate({
+            spreadsheetId,
+            requestBody: { requests: batchDelRequests },
+          });
+        }
+
+        const newItemRows: any[][] = data.items.map((item: any, idx: number) => {
+          const itemId = item.id || `i-${orderId}-${idx}`;
+          const isCustom = Boolean(item.isCustom);
+          const price = Number(item.price) || 0;
+          const qty = Number(item.qty) || 0;
+          const subtotal = isCustom ? 0 : price * qty;
+          return [
+            itemId,
+            orderId,
+            item.category || '',
+            item.productName || item.name || '',
+            qty,
+            item.unit || '',
+            price,
+            subtotal,
+            isCustom ? 'true' : 'false',
+          ];
+        });
+
+        if (newItemRows.length > 0) {
+          await sheets.spreadsheets.values.append({
+            spreadsheetId,
+            range: 'OrderItems!A:I',
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: newItemRows },
+          });
+        }
+      }
+
+      return NextResponse.json({ success: true, message: `Order ${orderId} updated successfully` });
+    }
+
     return NextResponse.json({ success: false, error: 'Unknown POST action' }, { status: 400 });
   } catch (error: any) {
     console.error('Google Sheets POST error:', error);
