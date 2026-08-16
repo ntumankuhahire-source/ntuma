@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
 import type { Order, OrderItem } from '@/lib/sheetsApi';
 import { CATEGORIES, QUICK_LIST_CATEGORY } from '@/lib/categories';
 
@@ -48,6 +49,80 @@ function formatQty(item: OrderItem): string {
   }
 
   return `${item.qty} ${unit}`;
+}
+
+/**
+ * Generate and download a single-sheet Excel invoice (.xlsx) for an order.
+ */
+export function downloadOrderInvoiceExcel(order: Order): void {
+  const dateStr = new Date(order.createdAt).toLocaleDateString('en-RW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const pMode = order.modeOfPayment || 'Cash';
+
+  const rows: (string | number)[][] = [
+    ['NTUMA PREMIUM COURIER SERVICE'],
+    ['Owner Contact: +250 787 800 703', '', 'Email: info@ntumankuhahire.com', '', 'Kigali, Rwanda'],
+    [],
+    ['INVOICE SUMMARY'],
+    ['Invoice Number:', order.id],
+    ['Date:', dateStr],
+    [],
+    ['BILLED TO'],
+    ['Customer Name:', order.customerName],
+    ['Phone Number:', order.customerPhone],
+    ['Delivery Location:', order.location],
+    ['Mode of Payment:', pMode],
+    ['Status:', order.status],
+    [],
+    ['ITEMS ORDERED'],
+    ['Category', 'Product / Description', 'Quantity', 'Unit Price (RWF)', 'Subtotal (RWF)'],
+  ];
+
+  order.items.forEach((item) => {
+    const isQuickList = item.isCustom || item.category === QUICK_LIST_CATEGORY || item.category === 'Quick List';
+    const catName = isQuickList ? 'Quick List' : (CATEGORIES.find((c) => c.id === item.category)?.name ?? item.category);
+    const qtyText = formatQty(item);
+
+    if (isQuickList) {
+      rows.push([catName, item.productName, qtyText, 'Ask price', '—']);
+    } else {
+      rows.push([catName, item.productName, qtyText, item.price, item.subtotal]);
+    }
+  });
+
+  rows.push([]);
+  rows.push(['', '', '', 'Subtotal:', `${order.total.toLocaleString()} RWF`]);
+  rows.push(['', '', '', 'Delivery Fee:', 'To be confirmed']);
+  rows.push(['', '', '', 'GRAND TOTAL:', `${order.total.toLocaleString()} RWF`]);
+
+  if (order.budget > 0) {
+    rows.push(['', '', '', 'Customer Budget:', `${order.budget.toLocaleString()} RWF`]);
+  }
+
+  rows.push([]);
+  rows.push(['Thank you for choosing Ntuma! Final amounts will be confirmed by your runner on WhatsApp.']);
+
+  // Create single worksheet
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+
+  ws['!cols'] = [
+    { wch: 22 },
+    { wch: 36 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 22 },
+  ];
+
+  // Create single workbook & append sheet
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Invoice');
+
+  // Download .xlsx
+  XLSX.writeFile(wb, `Ntuma_Order_${order.id}.xlsx`);
 }
 
 /**
@@ -409,6 +484,6 @@ export async function downloadOrderInvoice(order: Order): Promise<void> {
     }
   }
 
-  // Save
+  // Save PDF
   doc.save(`Ntuma_Order_${order.id}.pdf`);
 }

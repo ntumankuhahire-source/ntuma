@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { Eye, Download, ChevronDown, SlidersHorizontal, X, Phone, Package } from 'lucide-react'
+import { Eye, Download, ChevronDown, SlidersHorizontal, X, Phone, Package, FileText, FileSpreadsheet } from 'lucide-react'
 import { AdminTopbar } from '@/components/admin/AdminTopbar'
 import { OrderDetailPanel } from '@/components/admin/OrderDetailPanel'
-import { downloadOrderInvoice } from '@/components/admin/OrderInvoice'
+import { downloadOrderInvoice, downloadOrderInvoiceExcel } from '@/components/admin/OrderInvoice'
 import { listOrders, updateOrderStatus } from '@/lib/sheetsApi'
 import type { Order, OrderStatus } from '@/lib/sheetsApi'
 import { CATEGORIES, QUICK_LIST_CATEGORY } from '@/lib/categories'
@@ -428,7 +428,14 @@ export default function OrdersPage() {
                               title="Download PDF invoice"
                               className="p-2 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
                             >
-                              <Download className="w-4 h-4" />
+                              <FileText className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => downloadOrderInvoiceExcel(order)}
+                              title="Download Excel invoice (single sheet)"
+                              className="p-2 rounded-lg text-slate-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                            >
+                              <FileSpreadsheet className="w-4 h-4" />
                             </button>
                           </div>
                         </td>

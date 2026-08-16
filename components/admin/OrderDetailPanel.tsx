@@ -1,10 +1,10 @@
 'use client'
 
 import { Fragment, useEffect, useRef } from 'react'
-import { X, Phone, MapPin, Calendar, Hash, Download, Package, CreditCard } from 'lucide-react'
+import { X, Phone, MapPin, Calendar, Hash, Download, Package, CreditCard, FileText, FileSpreadsheet } from 'lucide-react'
 import type { Order, OrderStatus } from '@/lib/sheetsApi'
 import { CATEGORIES, QUICK_LIST_CATEGORY } from '@/lib/categories'
-import { downloadOrderInvoice } from './OrderInvoice'
+import { downloadOrderInvoice, downloadOrderInvoiceExcel } from './OrderInvoice'
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> = {
   Pending:   { label: 'Pending',   className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
@@ -256,14 +256,26 @@ export function OrderDetailPanel({ order, open, onClose, onStatusChange }: Order
           >
             Close
           </button>
-          <button
-            type="button"
-            onClick={() => downloadOrderInvoice(order)}
-            className="inline-flex items-center gap-2 rounded-card px-5 py-2.5 text-sm font-medium text-white bg-emerald-700 hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition-colors"
-          >
-            <Download className="h-4 w-4" />
-            Download Invoice
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => downloadOrderInvoice(order)}
+              className="inline-flex items-center gap-1.5 rounded-card px-3.5 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 transition-colors shadow-xs"
+              title="Download PDF Invoice"
+            >
+              <FileText className="h-4 w-4" />
+              PDF Invoice
+            </button>
+            <button
+              type="button"
+              onClick={() => downloadOrderInvoiceExcel(order)}
+              className="inline-flex items-center gap-1.5 rounded-card px-3.5 py-2 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 transition-colors shadow-xs"
+              title="Download Excel Invoice (Single Sheet)"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              Excel Invoice
+            </button>
+          </div>
         </div>
       </div>
     </>

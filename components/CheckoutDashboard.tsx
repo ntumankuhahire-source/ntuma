@@ -30,12 +30,13 @@ import {
   Apple,
   Beef,
   FileText,
+  FileSpreadsheet,
   DollarSign,
   MessageCircle,
   Sparkles,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import InvoiceTemplate, { generateInvoicePDF } from './InvoiceTemplate';
+import InvoiceTemplate, { generateInvoicePDF, generateInvoiceExcel } from './InvoiceTemplate';
 
 // ── Category Icon & Color Metadata ───────────────────────────────────────────
 function getCategoryMeta(categoryId: string) {
@@ -237,6 +238,10 @@ export default function CheckoutDashboard() {
     } finally {
       setIsGeneratingInvoice(false);
     }
+  };
+
+  const handleDownloadInvoiceExcel = () => {
+    generateInvoiceExcel(orderId || 'DRAFT', details, items, fixedTotal, paymentMode);
   };
 
   const saveItemNote = (itemId: string) => {
@@ -900,18 +905,29 @@ export default function CheckoutDashboard() {
 
             {/* Finalize WhatsApp Box */}
             <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="font-display font-bold text-lg text-slate-900">
                   Confirm &amp; Send Order
                 </h3>
-                <button
-                  onClick={handleDownloadInvoice}
-                  disabled={isGeneratingInvoice}
-                  className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-xl hover:bg-emerald-100 transition-colors disabled:opacity-50"
-                >
-                  <Download className="w-4 h-4" />
-                  {isGeneratingInvoice ? 'Generating...' : 'Draft Invoice'}
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={handleDownloadInvoice}
+                    disabled={isGeneratingInvoice}
+                    title="Download PDF Invoice"
+                    className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    PDF
+                  </button>
+                  <button
+                    onClick={handleDownloadInvoiceExcel}
+                    title="Download Single-Sheet Excel Invoice"
+                    className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-1.5 rounded-xl hover:bg-blue-100 transition-colors"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                    Excel
+                  </button>
+                </div>
               </div>
               <p className="text-sm text-slate-600">
                 Click below to send your complete order summary directly to our runner team on

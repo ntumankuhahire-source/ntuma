@@ -3,6 +3,7 @@
 import React from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
 
 interface InvoiceItem {
   id: string;
@@ -67,6 +68,73 @@ export const generateInvoicePDF = async (elementId: string, orderId: string) => 
   } finally {
     element.style.display = originalDisplay;
   }
+};
+
+export const generateInvoiceExcel = (
+  orderId: string,
+  customerDetails: { name: string; phone: string; address: string },
+  items: InvoiceItem[],
+  fixedTotal: number,
+  modeOfPayment?: string
+) => {
+  const dateStr = new Date().toLocaleDateString('en-RW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const pMode = modeOfPayment || 'Cash';
+
+  const rows: (string | number)[][] = [
+    ['NTUMA PREMIUM COURIER SERVICE'],
+    ['Owner Contact: +250 787 800 703', '', 'Email: info@ntumankuhahire.com', '', 'Kigali, Rwanda'],
+    [],
+    ['INVOICE SUMMARY'],
+    ['Invoice Number:', orderId],
+    ['Date:', dateStr],
+    [],
+    ['BILLED TO'],
+    ['Customer Name:', customerDetails.name],
+    ['Phone Number:', customerDetails.phone],
+    ['Delivery Location:', customerDetails.address],
+    ['Mode of Payment:', pMode],
+    [],
+    ['ITEMS ORDERED'],
+    ['Description', 'Quantity', 'Price (RWF)', 'Amount (RWF)'],
+  ];
+
+  items.forEach((item) => {
+    const isCustom = item.priceType === 'custom' || (item as any).isCustom;
+    const unit = (item.unit || '').trim();
+    const qtyText = isCustom
+      ? (unit && unit !== '—' && unit !== '-' ? unit : `${item.quantity || 1}`)
+      : (unit && unit !== '—' && unit !== '-' ? (/^\d/.test(unit) && item.quantity === 1 ? unit : `${item.quantity} ${unit}`) : `${item.quantity}`);
+
+    const priceVal = item.priceType === 'fixed' ? item.price : 'TBD';
+    const amountVal = item.priceType === 'fixed' ? item.price * item.quantity : 'TBD';
+
+    rows.push([item.name, qtyText, priceVal, amountVal]);
+  });
+
+  rows.push([]);
+  rows.push(['', '', 'Subtotal:', `${fixedTotal.toLocaleString()} RWF`]);
+  rows.push(['', '', 'Delivery Fee:', 'TBD']);
+  rows.push(['', '', 'GRAND TOTAL:', `${fixedTotal.toLocaleString()} RWF`]);
+  rows.push([]);
+  rows.push(['Thank you for choosing Ntuma! Final amounts will be confirmed by your runner on WhatsApp.']);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 36 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 22 },
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Invoice');
+
+  XLSX.writeFile(wb, `Ntuma_Invoice_${orderId}.xlsx`);
 };
 
 export default function InvoiceTemplate({ orderId, customerDetails, items, fixedTotal, modeOfPayment }: InvoiceProps) {
