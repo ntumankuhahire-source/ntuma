@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import type { Order, OrderItem } from '@/lib/sheetsApi';
 import { CATEGORIES, QUICK_LIST_CATEGORY } from '@/lib/categories';
 
@@ -52,77 +52,258 @@ function formatQty(item: OrderItem): string {
 }
 
 /**
- * Generate and download a single-sheet Excel invoice (.xlsx) for an order.
+ * Generate and download a beautifully styled single-sheet Excel invoice (.xlsx) with Ntuma branding and logo.
  */
-export function downloadOrderInvoiceExcel(order: Order): void {
-  const dateStr = new Date(order.createdAt).toLocaleDateString('en-RW', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+export async function downloadOrderInvoiceExcel(order: Order): Promise<void> {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'Ntuma Courier Service';
+  workbook.lastModifiedBy = 'Ntuma Admin';
+  workbook.created = new Date();
+
+  const worksheet = workbook.addWorksheet('Invoice', {
+    views: [{ showGridLines: true }]
   });
 
-  const pMode = order.modeOfPayment || 'Cash';
-
-  const rows: (string | number)[][] = [
-    ['NTUMA PREMIUM COURIER SERVICE'],
-    ['Owner Contact: +250 787 800 703', '', 'Email: info@ntumankuhahire.com', '', 'Kigali, Rwanda'],
-    [],
-    ['INVOICE SUMMARY'],
-    ['Invoice Number:', order.id],
-    ['Date:', dateStr],
-    [],
-    ['BILLED TO'],
-    ['Customer Name:', order.customerName],
-    ['Phone Number:', order.customerPhone],
-    ['Delivery Location:', order.location],
-    ['Mode of Payment:', pMode],
-    ['Status:', order.status],
-    [],
-    ['ITEMS ORDERED'],
-    ['Category', 'Product / Description', 'Quantity', 'Unit Price (RWF)', 'Subtotal (RWF)'],
+  // Define Column widths
+  worksheet.columns = [
+    { key: 'category', width: 24 },
+    { key: 'product', width: 38 },
+    { key: 'quantity', width: 18 },
+    { key: 'price', width: 22 },
+    { key: 'subtotal', width: 24 },
   ];
 
-  order.items.forEach((item) => {
+  // Row Heights for Header
+  worksheet.getRow(1).height = 24;
+  worksheet.getRow(2).height = 24;
+  worksheet.getRow(3).height = 24;
+
+  // Embed Logo Image if available
+  const logoBase64 = await getLogoBase64();
+  if (logoBase64) {
+    try {
+      const imageId = workbook.addImage({
+        base64: logoBase64,
+        extension: 'png',
+      });
+      worksheet.addImage(imageId, {
+        tl: { col: 0.1, row: 0.1 },
+        ext: { width: 56, height: 56 },
+      });
+    } catch (e) {
+      console.error('Error adding logo image to Excel workbook:', e);
+    }
+  }
+
+  // Header Title & Contact (Col B & C)
+  const titleCell = worksheet.getCell('B1');
+  titleCell.value = 'NTUMA';
+  titleCell.font = { name: 'Segoe UI', size: 20, bold: true, color: { argb: 'FF047857' } };
+
+  const subtitleCell = worksheet.getCell('B2');
+  subtitleCell.value = 'PREMIUM COURIER SERVICE';
+  subtitleCell.font = { name: 'Segoe UI', size: 8.5, bold: true, color: { argb: 'FF64748B' } };
+
+  const contactCell = worksheet.getCell('B3');
+  contactCell.value = 'Owner Contact: +250 787 800 703  |  info@ntumankuhahire.com  |  Kigali, Rwanda';
+  contactCell.font = { name: 'Segoe UI', size: 8.5, color: { argb: 'FF64748B' } };
+
+  // Invoice Number & Date (Right aligned on Col E)
+  const invoiceLabelCell = worksheet.getCell('E1');
+  invoiceLabelCell.value = 'INVOICE';
+  invoiceLabelCell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFD97706' } };
+  invoiceLabelCell.alignment = { horizontal: 'right' };
+
+  const invoiceIdCell = worksheet.getCell('E2');
+  invoiceIdCell.value = order.id;
+  invoiceIdCell.font = { name: 'Segoe UI', size: 16, bold: true, color: { argb: 'FF047857' } };
+  invoiceIdCell.alignment = { horizontal: 'right' };
+
+  const dateStr = new Date(order.createdAt).toLocaleDateString('en-RW', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  });
+  const dateCell = worksheet.getCell('E3');
+  dateCell.value = dateStr;
+  dateCell.font = { name: 'Segoe UI', size: 9, color: { argb: 'FF64748B' } };
+  dateCell.alignment = { horizontal: 'right' };
+
+  // Row 4: Emerald Accent Divider
+  worksheet.getRow(4).height = 6;
+  for (let col = 1; col <= 5; col++) {
+    const cell = worksheet.getCell(4, col);
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF047857' } };
+  }
+
+  // Row 5: Spacing
+  worksheet.getRow(5).height = 10;
+
+  // Row 6-10: Billed To Block
+  worksheet.getRow(6).height = 20;
+  worksheet.mergeCells('A6:E6');
+  const billedToHeader = worksheet.getCell('A6');
+  billedToHeader.value = 'BILLED TO';
+  billedToHeader.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FF047857' } };
+  billedToHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEFCE8' } };
+  billedToHeader.alignment = { vertical: 'middle', indent: 1 };
+
+  worksheet.getRow(7).height = 24;
+  worksheet.getCell('A7').value = order.customerName;
+  worksheet.getCell('A7').font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF0F172A' } };
+
+  worksheet.getRow(8).height = 18;
+  worksheet.getCell('A8').value = `Location: ${order.location}`;
+  worksheet.getCell('A8').font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF475569' } };
+
+  worksheet.getRow(9).height = 18;
+  worksheet.getCell('A9').value = `Phone: ${order.customerPhone}`;
+  worksheet.getCell('A9').font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF475569' } };
+
+  worksheet.getRow(10).height = 20;
+  const pMode = order.modeOfPayment || 'Cash';
+  worksheet.getCell('A10').value = `Payment Mode: ${pMode}  •  Status: ${order.status.toUpperCase()}`;
+  worksheet.getCell('A10').font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF047857' } };
+
+  // Row 11: Spacing
+  worksheet.getRow(11).height = 12;
+
+  // Row 12: Table Header
+  worksheet.getRow(12).height = 26;
+  const headers = ['CATEGORY', 'PRODUCT / DESCRIPTION', 'QUANTITY', 'UNIT PRICE', 'SUBTOTAL'];
+  headers.forEach((h, idx) => {
+    const cell = worksheet.getCell(12, idx + 1);
+    cell.value = h;
+    cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF047857' } };
+    cell.alignment = {
+      vertical: 'middle',
+      horizontal: idx === 2 ? 'center' : idx >= 3 ? 'right' : 'left',
+    };
+    cell.border = {
+      top: { style: 'medium', color: { argb: 'FF047857' } },
+      bottom: { style: 'medium', color: { argb: 'FF047857' } },
+    };
+  });
+
+  // Table rows
+  let currRow = 13;
+  order.items.forEach((item, idx) => {
+    worksheet.getRow(currRow).height = 22;
     const isQuickList = item.isCustom || item.category === QUICK_LIST_CATEGORY || item.category === 'Quick List';
     const catName = isQuickList ? 'Quick List' : (CATEGORIES.find((c) => c.id === item.category)?.name ?? item.category);
     const qtyText = formatQty(item);
 
+    const isEven = idx % 2 === 0;
+    const bgFill = isEven ? 'FFFFFFFF' : 'FFF8FAFC';
+
+    const cellCat = worksheet.getCell(currRow, 1);
+    cellCat.value = catName;
+    cellCat.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF334155' } };
+
+    const cellProd = worksheet.getCell(currRow, 2);
+    cellProd.value = item.productName;
+    cellProd.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
+
+    const cellQty = worksheet.getCell(currRow, 3);
+    cellQty.value = qtyText;
+    cellQty.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF334155' } };
+    cellQty.alignment = { horizontal: 'center' };
+
+    const cellPrice = worksheet.getCell(currRow, 4);
+    const cellSubtotal = worksheet.getCell(currRow, 5);
+
     if (isQuickList) {
-      rows.push([catName, item.productName, qtyText, 'Ask price', '—']);
+      cellPrice.value = 'Ask price';
+      cellPrice.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF64748B' } };
+      cellSubtotal.value = '—';
+      cellSubtotal.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF64748B' } };
     } else {
-      rows.push([catName, item.productName, qtyText, item.price, item.subtotal]);
+      cellPrice.value = `${item.price.toLocaleString()} RWF`;
+      cellPrice.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF475569' } };
+      cellSubtotal.value = `${item.subtotal.toLocaleString()} RWF`;
+      cellSubtotal.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
     }
+
+    cellPrice.alignment = { horizontal: 'right' };
+    cellSubtotal.alignment = { horizontal: 'right' };
+
+    for (let col = 1; col <= 5; col++) {
+      const c = worksheet.getCell(currRow, col);
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgFill } };
+      c.border = {
+        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+      };
+    }
+
+    currRow++;
   });
 
-  rows.push([]);
-  rows.push(['', '', '', 'Subtotal:', `${order.total.toLocaleString()} RWF`]);
-  rows.push(['', '', '', 'Delivery Fee:', 'To be confirmed']);
-  rows.push(['', '', '', 'GRAND TOTAL:', `${order.total.toLocaleString()} RWF`]);
+  // Totals Section
+  currRow += 1;
+  worksheet.getRow(currRow).height = 20;
+  worksheet.getCell(currRow, 4).value = 'Subtotal';
+  worksheet.getCell(currRow, 4).font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF64748B' } };
+  worksheet.getCell(currRow, 5).value = `${order.total.toLocaleString()} RWF`;
+  worksheet.getCell(currRow, 5).font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+  worksheet.getCell(currRow, 5).alignment = { horizontal: 'right' };
+
+  currRow++;
+  worksheet.getRow(currRow).height = 20;
+  worksheet.getCell(currRow, 4).value = 'Delivery Fee';
+  worksheet.getCell(currRow, 4).font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF64748B' } };
+  worksheet.getCell(currRow, 5).value = 'To be confirmed';
+  worksheet.getCell(currRow, 5).font = { name: 'Segoe UI', size: 9.5, italic: true, color: { argb: 'FF64748B' } };
+  worksheet.getCell(currRow, 5).alignment = { horizontal: 'right' };
+
+  // Grand Total Box
+  currRow++;
+  worksheet.getRow(currRow).height = 28;
+  const grandTotalLabel = worksheet.getCell(currRow, 4);
+  grandTotalLabel.value = 'TOTAL';
+  grandTotalLabel.font = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FF0F172A' } };
+  grandTotalLabel.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFACC15' } };
+  grandTotalLabel.alignment = { vertical: 'middle', indent: 1 };
+
+  const grandTotalVal = worksheet.getCell(currRow, 5);
+  grandTotalVal.value = `${order.total.toLocaleString()} RWF`;
+  grandTotalVal.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF047857' } };
+  grandTotalVal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFACC15' } };
+  grandTotalVal.alignment = { vertical: 'middle', horizontal: 'right' };
 
   if (order.budget > 0) {
-    rows.push(['', '', '', 'Customer Budget:', `${order.budget.toLocaleString()} RWF`]);
+    currRow++;
+    worksheet.getRow(currRow).height = 20;
+    worksheet.getCell(currRow, 1).value = `Customer Budget: ${order.budget.toLocaleString()} RWF`;
+    worksheet.getCell(currRow, 1).font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: 'FF64748B' } };
   }
 
-  rows.push([]);
-  rows.push(['Thank you for choosing Ntuma! Final amounts will be confirmed by your runner on WhatsApp.']);
+  // Footer Message
+  currRow += 2;
+  worksheet.getRow(currRow).height = 22;
+  worksheet.mergeCells(`A${currRow}:E${currRow}`);
+  const footer1 = worksheet.getCell(`A${currRow}`);
+  footer1.value = 'Thank you for choosing Ntuma!';
+  footer1.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF047857' } };
+  footer1.alignment = { horizontal: 'center' };
 
-  // Create single worksheet
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  currRow++;
+  worksheet.getRow(currRow).height = 18;
+  worksheet.mergeCells(`A${currRow}:E${currRow}`);
+  const footer2 = worksheet.getCell(`A${currRow}`);
+  footer2.value = 'Final amounts will be confirmed by your runner on WhatsApp.';
+  footer2.font = { name: 'Segoe UI', size: 9, color: { argb: 'FF64748B' } };
+  footer2.alignment = { horizontal: 'center' };
 
-  ws['!cols'] = [
-    { wch: 22 },
-    { wch: 36 },
-    { wch: 18 },
-    { wch: 20 },
-    { wch: 22 },
-  ];
-
-  // Create single workbook & append sheet
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Invoice');
-
-  // Download .xlsx
-  XLSX.writeFile(wb, `Ntuma_Order_${order.id}.xlsx`);
+  // Write Excel file buffer to browser download
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Ntuma_Order_${order.id}.xlsx`;
+  a.click();
+  window.URL.revokeObjectURL(url);
 }
 
 /**
